@@ -17,11 +17,10 @@ class Drone:
             return
         if self.restricted_movement_turns_buffer != 0:
             self.restricted_movement_turns_buffer -= 1
+            self.path.pop(0)
             return
-        drones_in_node = sum(1 for dr in drones
-                             if dr.current_zone == self.path[0])
-        if drones_in_node >= self.path[0].max_drones:
-            # wait()
+        if self.current_zone == self.path[0]:
+            self.path.pop(0)
             return
         else:
             self.current_zone = self.path.pop(0)

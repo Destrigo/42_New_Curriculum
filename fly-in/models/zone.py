@@ -11,7 +11,7 @@ class Node():
         if self.zone == "normal":
             self.cost = 1
         if self.zone == "restricted":
-            self.cost = 2
+            self.cost = 1
         if self.zone == "blocked":
             self.cost = 1000000
         if self.zone == "priority":
