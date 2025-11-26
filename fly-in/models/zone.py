@@ -1,6 +1,7 @@
 class Node():
     """Base of every node of every map"""
-    def __init__(self, map_definition: str, name: str, x: int, y: int, type_zone="standard", color="black", max_drone=1):
+    def __init__(self, map_definition: str, name: str, x: int, y: int,
+                 type_zone="standard", color="black", max_drone=1):
         """Initialize"""
         self.x = x
         self.y = y
@@ -20,4 +21,3 @@ class Node():
 
         self.color = color
         self.max_drone = max_drone
-        

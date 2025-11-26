@@ -1,63 +1,66 @@
+from models.drone import Drone
+from models.zone import Node
+from models.connection import Connection
+
+
 class Map_Parser:
     """Parser of the input"""
-    def __init__(self, file_obj)
+    def __init__(self, file_obj):
         """initialize"""
+        self.nodes: list[Node] = []
+        self.connections: list[Connection] = []
+        self.drones: list[Drone] = []
+        self.num_drones = 0
         self.parse(file_obj)
-    
-    def parse(f: file_obj)
+
+    def parse(self, f):
         """the actual function that parses"""
-        drones = []
-        nodes = []
-        connections = []
+        line = self._next_line(f)
 
+        if not line.lower().startswith("nb_drones"):
+            raise ValueError("Missing nb_drones")
+        self.num_drones = int(line.split(":")[1].strip())
+
+        line = self._next_line(f)
+        if not line.startswith("start_hub"):
+            raise ValueError("Missing start_hub")
+        start_zone = self._parse_node(line)
+        self.nodes.append(start_zone)
+
+        line = self._next_line(f)
+        while line.startswith("hub:"):
+            node = self._parse_node(line)
+            self.nodes.append(node)
+            line = self._next_line(f)
+
+        if not line.startswith("end_hub"):
+            raise ValueError("Missing end_hub")
+        end_zone = self._parse_node(line)
+        self.nodes.append(end_zone)
+
+        line = self._next_line(f)
+        while line.startswith("connection:"):
+            conn = self._parse_connection(line)
+            self.connections.append(conn)
+            line = self._next_line(f)
+
+        for i in range(1, self.num_drones + 1):
+            self.drones.append(Drone(i, start_zone))
+
+    def _next_line(self, f):
+        """Return next non-empty, non-comment line"""
         line = f.readline()
-        while line.strip() == "" or line.lstrip().startswith("#"):
+        while line and (line.strip() == "" or line.lstrip().startswith("#")):
             line = f.readline()
+        return line.strip()
 
-        line.lower()
-        if line.startswith("nb_drones") is False:
-            raise AssertionError("wrong drones input parcing")
-        else:
-            line.strip("nb_drones, :")
+    def _parse_node(self, line: str) -> Node:
+        """Parse a node"""
+        # TODO: actual extraction of name, x, y, metadata
+        return Node("exampleName", 0, 0)
 
-        num_drones = int(line)
-        for i in range(num_drones)
-            drones.append(Drone(i))
-
-        line = f.readline()
-        while line.strip() == "" or line.lstrip().startswith("#"):
-            line = f.readline()
-
-        if line.startswith("start_hub") is False:
-            raise AssertionError("wrong start_hubs input parcing")
-        else:
-            nodes.append(Node("parcing of the node")) #need to parce this part
-    
-        line = f.readline()
-        while line.startswith("hub") is True:
-            nodes.append(Node("parcing of the node")) #need to parce this part
-            line = f.readline()
-        if line.startswith("end_hub") is False:
-            raise AssertionError("wrong end_hubs input parcing")
-        else:
-            nodes.append(Node("parcing of the node")) #need to parce this part
-    
-        line = f.readline()
-        while line.strip() == "" or line.lstrip().startswith("#"):
-            line = f.readline()
-
-        lst = []
-        if line.startswith("connection: ") is False:
-            raise AssertionError("No connections in input")
-        else:
-            while line.startswith("connection: ")
-                lst = line.split(" :-")
-                connections.append(Connection(lst[1], lst[2]))
-                line = f.readline()
-
-
-        initialize map
-        check map
-        initialize drones starting in start_hub
-        check drones    
-    
+    def _parse_connection(self, line: str) -> Connection:
+        """Parse connection"""
+        _, rest = line.split(":")
+        left, right = rest.strip().split("-")
+        return Connection(left.strip(), right.strip())
