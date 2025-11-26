@@ -11,8 +11,22 @@ class Drone:
         self.path: list[Node] = []
         self.restricted_movement_turns_buffer = 0
 
-    def next_move(self) -> Node | None:
-        """Return the next zone the drone wants to move into"""
-        if not self.path:
-            return None
-        return self.path.pop(0)
+    def action(self, drones: list) -> None:
+        """do something"""
+        if self.is_arrived is True:
+            return
+        if self.restricted_movement_turns_buffer != 0:
+            self.restricted_movement_turns_buffer -= 1
+            return
+        drones_in_node = sum(1 for dr in drones
+                             if dr.current_zone == self.path[0])
+        if drones_in_node >= self.path[0].max_drones:
+            # wait()
+            return
+        else:
+            self.current_zone = self.path.pop(0)
+            if self.current_zone.zone == "restricted":
+                self.restricted_movement_turns_buffer = 1
+        # if here it moved, check if it finished
+        if self.restricted_movement_turns_buffer == 0 and not self.path:
+            self.is_arrived = True

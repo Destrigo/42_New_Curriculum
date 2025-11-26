@@ -77,13 +77,21 @@ class Parser:
     def _parse_connection(self, line: str, drone: list) -> None:
         """Parse connection"""
         line = line[11:]
-        parsed = line.split("-")
+        parsed = line.split("-[]")
         for dr in drone:
             if parsed[0] == dr.name:
                 dr.connections.append(parsed[1])
+                # if len(parsed > 2):
+                #    dr.connections.append(parsed[1], int(parsed[3]))
+                # else:
+                #    dr.connections.append(parsed[1], 1)
         for dr in drone:
             if parsed[1] == dr.name:
                 dr.connections.append(parsed[0])
+                # if len(parsed > 2):
+                #    dr.connections.append(parsed[1], int(parsed[3]))
+                # else:
+                #    dr.connections.append(parsed[1], 1)
 
     def _parse_drone(self, i: int, start_zone: Node) -> Drone:
         """parse drones"""

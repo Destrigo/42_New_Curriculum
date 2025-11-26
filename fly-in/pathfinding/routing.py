@@ -12,7 +12,7 @@ class Pathfinder:
         start = self.nodes[0]
         end = self.nodes[len(self.nodes) - 1]
 
-        def generate_all_paths(self, start_node, end_node) -> list:
+        def generate_all_paths(start_node, end_node) -> list:
             all_paths = []
 
             def dfs(current, visited, path):
@@ -26,7 +26,7 @@ class Pathfinder:
                 else:
                     # explore all neighbors
                     for neighbor in current.connections:
-                        if neighbor not in visited:
+                        if neighbor not in visited and neighbor.zone != "blocked":
                             dfs(neighbor, visited, path)
 
                 # backtrack
@@ -40,15 +40,19 @@ class Pathfinder:
             return sum(n.cost for n in path)
 
         # cursed wrong stuff to recode
-        def calculate_added_cost(cheapest_path: list) -> int:
+        def calculate_added_cost(cheapest_path: list) -> float:
             """add value to path since it was chosen"""
-            min = 1
+            max_cost = 1.0
             for x in cheapest_path:
-                if x.cost > min:
-                    min = x.cost
-            return min
+                if x.cost > max_cost:
+                    max_cost = x.cost
+            return max_cost
 
         self.paths = generate_all_paths(self, start, end)
+        self.paths = [path for path in self.paths if path and path[-1] == end]
+        # remove the first for since its the starting point
+        for path in self.paths:
+            path.pop(0)
         costed_paths = [(path_cost(p), p) for p in self.paths]
 
         # sorts the paths by cost then assignes then updates

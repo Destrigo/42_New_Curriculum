@@ -1,15 +1,14 @@
 class Node():
     """Base of every node of every map"""
     def __init__(self, map_definition: str, name: str, x: int, y: int,
-                 zone="standard", color="black", max_drone=1):
+                 zone="normal", color=None, max_drone=1):
         """Initialize"""
         self.x = x
         self.y = y
         self.name = name
         self.map_definition = map_definition
         self.zone = zone
-        self.priority_flag = False
-        if self.zone == "standard":
+        if self.zone == "normal":
             self.cost = 1
         if self.zone == "restricted":
             self.cost = 2
