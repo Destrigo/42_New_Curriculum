@@ -12,10 +12,10 @@ class Pathfinder:
         start = self.nodes[0]
         end = self.nodes[len(self.nodes) - 1]
 
-        def generate_all_paths(start_node, end_node) -> list:
+        def generate_all_paths(start_node, end_node, nodes_dict: dict) -> list:
             all_paths = []
 
-            def dfs(current, visited, path):
+            def dfs(current, visited, path, nodes_dict):
                 # add the current node to path
                 visited.add(current)
                 path.append(current)
@@ -24,14 +24,15 @@ class Pathfinder:
                     all_paths.append(path.copy())
                 else:
                     # explore all neighbors
-                    for neighbor in current.connections:
+                    for neighbor_name in current.connections:
+                        neighbor = nodes_dict[neighbor_name]
                         if neighbor not in visited and neighbor.zone != "blocked":
-                            dfs(neighbor, visited, path)
+                            dfs(neighbor, visited, path, nodes_dict)
                 # backtrack
                 path.pop()
                 visited.remove(current)
 
-            dfs(start_node, set(), [])
+            dfs(start_node, set(), [], nodes_dict)
             return all_paths
 
         def path_cost(path):
@@ -46,7 +47,8 @@ class Pathfinder:
                     max_cost = x.cost
             return max_cost
 
-        self.paths = generate_all_paths(start, end)
+        nodes_dict = {node.name: node for node in nodes}
+        self.paths = generate_all_paths(start, end, nodes_dict)
         self.paths = [path for path in self.paths if path and path[-1] == end]
 
         # remove the first for since its the starting point
@@ -79,7 +81,7 @@ class Pathfinder:
                     if t < len(chosen) and chosen[t] == node:
                         occupied += 1
                 capacity = getattr(node, "max_drones", 1)
-                if occupied >= capacity:
+                if occupied >= int(capacity):
                     adjusted_path.insert(t, node)
                     t += 1
                 else:

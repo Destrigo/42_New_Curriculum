@@ -4,14 +4,14 @@ from models.zone import Node
 
 class Parser:
     """Parser of the input"""
-    def __init__(self, file_obj) -> list:
+    def __init__(self, file_obj):
         """initialize"""
         self.nodes: list[Node] = []
         self.drones: list[Drone] = []
         self.num_drones = 0
-        return self.parse(file_obj)
+        self.parse(file_obj)
 
-    def parse(self, f) -> list:
+    def parse(self, f):
         """the actual function that parses"""
         line = self._next_line(f)
 
@@ -45,11 +45,6 @@ class Parser:
             dr = self._parse_drone(i, start_zone)
             self.drones.append(dr)
 
-        res = []
-        res.append(self.drones)
-        res.append(self.nodes)
-        return res
-
     def _next_line(self, f):
         """Return next non-empty, non-comment line"""
         line = f.readline()
@@ -59,25 +54,20 @@ class Parser:
 
     def _parse_node(self, line: str) -> Node:
         """Parse a node"""
-        parseddata = []
-        parseddata = line.split(" :[]")
-        n = Node()
-        n.map_definition = parseddata[0]
-        n.name = parseddata[1]
-        n.x = parseddata[int(parseddata[2])]
-        n.y = parseddata[int(parseddata[3])]
+        parseddata = line.replace("[", "").replace("]", "").replace(":", "").replace("=", " ").split(" ")
+        n = Node(parseddata[0], parseddata[1], int(parseddata[2]), int(parseddata[3]))
         if len(parseddata) > 4:
-            n.setattr(self, parseddata[4], parseddata[5])
+            setattr(n, parseddata[4], parseddata[5])
         if len(parseddata) > 6:
-            n.setattr(self, parseddata[6], parseddata[7])
+            setattr(n, parseddata[6], parseddata[7])
         if len(parseddata) > 8:
-            n.setattr(self, parseddata[8], parseddata[9])
+            setattr(n, parseddata[8], parseddata[9])
         return n
 
     def _parse_connection(self, line: str, drone: list) -> None:
         """Parse connection"""
         line = line[11:]
-        parsed = line.split("-[]")
+        parsed = line.replace("[", "").replace("]", "").replace(" ", "").split("-")
         for dr in drone:
             if parsed[0] == dr.name:
                 dr.connections.append(parsed[1])
@@ -95,7 +85,5 @@ class Parser:
 
     def _parse_drone(self, i: int, start_zone: Node) -> Drone:
         """parse drones"""
-        n = Drone()
-        n.id = i
-        n.start_zone = start_zone
+        n = Drone(i, start_zone)
         return n
