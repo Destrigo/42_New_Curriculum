@@ -1,19 +1,17 @@
 from models.drone import Drone
 from models.zone import Node
-from models.connection import Connection
 
 
-class Map_Parser:
+class Parser:
     """Parser of the input"""
-    def __init__(self, file_obj):
+    def __init__(self, file_obj) -> list:
         """initialize"""
         self.nodes: list[Node] = []
-        self.connections: list[Connection] = []
         self.drones: list[Drone] = []
         self.num_drones = 0
-        self.parse(file_obj)
+        return self.parse(file_obj)
 
-    def parse(self, f):
+    def parse(self, f) -> list:
         """the actual function that parses"""
         line = self._next_line(f)
 
@@ -40,12 +38,17 @@ class Map_Parser:
 
         line = self._next_line(f)
         while line.startswith("connection:"):
-            conn = self._parse_connection(line)
-            self.connections.append(conn)
+            self._parse_connection(line, self.nodes)
             line = self._next_line(f)
 
         for i in range(1, self.num_drones + 1):
-            self.drones.append(Drone(i, start_zone))
+            dr = self._parse_drone(i, start_zone)
+            self.drones.append(dr)
+
+        res = []
+        res.append(self.drones)
+        res.append(self.nodes)
+        return res
 
     def _next_line(self, f):
         """Return next non-empty, non-comment line"""
@@ -56,11 +59,35 @@ class Map_Parser:
 
     def _parse_node(self, line: str) -> Node:
         """Parse a node"""
-        # TODO: actual extraction of name, x, y, metadata
-        return Node("exampleName", 0, 0)
+        parseddata = []
+        parseddata = line.split(" :[]")
+        n = Node()
+        n.map_definition = parseddata[0]
+        n.name = parseddata[1]
+        n.x = parseddata[int(parseddata[2])]
+        n.y = parseddata[int(parseddata[3])]
+        if len(parseddata) > 4:
+            n.setattr(self, parseddata[4], parseddata[5])
+        if len(parseddata) > 6:
+            n.setattr(self, parseddata[6], parseddata[7])
+        if len(parseddata) > 8:
+            n.setattr(self, parseddata[8], parseddata[9])
+        return n
 
-    def _parse_connection(self, line: str) -> Connection:
+    def _parse_connection(self, line: str, drone: list) -> None:
         """Parse connection"""
-        _, rest = line.split(":")
-        left, right = rest.strip().split("-")
-        return Connection(left.strip(), right.strip())
+        line = line[11:]
+        parsed = line.split("-")
+        for dr in drone:
+            if parsed[0] == dr.name:
+                dr.connections.append(parsed[1])
+        for dr in drone:
+            if parsed[1] == dr.name:
+                dr.connections.append(parsed[0])
+
+    def _parse_drone(self, i: int, start_zone: Node) -> Drone:
+        """parse drones"""
+        n = Drone()
+        n.id = i
+        n.start_zone = start_zone
+        return n
