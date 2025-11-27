@@ -26,6 +26,7 @@ class Drone:
             self.current_zone = self.path.pop(0)
             if self.current_zone.zone == "restricted":
                 self.restricted_movement_turns_buffer = 1
-            if self.restricted_movement_turns_buffer == 0 and self.current_zone.name == "goal":
-                self.is_arrived = True
+            if self.restricted_movement_turns_buffer == 0:
+                if self.current_zone.name == "goal":
+                    self.is_arrived = True
             return

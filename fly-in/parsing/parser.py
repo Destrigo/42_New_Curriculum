@@ -54,8 +54,13 @@ class Parser:
 
     def _parse_node(self, line: str) -> Node:
         """Parse a node"""
-        parseddata = line.replace("[", "").replace("]", "").replace(":", "").replace("=", " ").split(" ")
-        n = Node(parseddata[0], parseddata[1], int(parseddata[2]), int(parseddata[3]))
+        parseddata = line.replace("[", ""
+                                  ).replace("]", ""
+                                            ).replace(":", ""
+                                                      ).replace("=", " "
+                                                                ).split(" ")
+        n = Node(parseddata[0], parseddata[1],
+                 int(parseddata[2]), int(parseddata[3]))
         if len(parseddata) > 4:
             setattr(n, parseddata[4], parseddata[5])
         if len(parseddata) > 6:
@@ -67,7 +72,8 @@ class Parser:
     def _parse_connection(self, line: str, drone: list) -> None:
         """Parse connection"""
         line = line[11:]
-        parsed = line.replace("[", "").replace("]", "").replace(" ", "").split("-")
+        parsed = line.replace("[", "-").replace("]", "-"
+                                                ).replace(" ", "").split("-")
         for dr in drone:
             if parsed[0] == dr.name:
                 dr.connections.append(parsed[1])

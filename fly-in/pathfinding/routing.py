@@ -29,8 +29,9 @@ class Pathfinder:
                     # explore all neighbors
                     for neighbor_name in current.connections:
                         neighbor = nodes_dict[neighbor_name]
-                        if neighbor not in visited and neighbor.zone != "blocked":
-                            dfs(neighbor, visited, path, nodes_dict)
+                        if neighbor not in visited:
+                            if neighbor.zone != "blocked":
+                                dfs(neighbor, visited, path, nodes_dict)
                 # backtrack
                 path.pop()
                 visited.remove(current)
@@ -68,7 +69,7 @@ class Pathfinder:
             t = 0
             while t < len(adjusted_path):
                 node = Node("w", "w", -9999999, -9999999)
-                # count how many already chosen drones are in this node at time t
+                # count chosen drones are in this node at time t
                 occupied = 0
                 for chosen in chosen_paths:
                     if t < len(chosen) and chosen[t] == adjusted_path[t]:
