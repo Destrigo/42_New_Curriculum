@@ -1,3 +1,6 @@
+from models.zone import Node
+
+
 class Pathfinder:
     """the whole thing"""
     def __init__(self, drones: list, nodes: list):
@@ -38,15 +41,6 @@ class Pathfinder:
         def path_cost(path):
             return sum(n.cost for n in path)
 
-        # cursed wrong stuff to recode
-        def calculate_added_cost(cheapest_path: list) -> float:
-            """add value to path since it was chosen"""
-            max_cost = 1.0
-            for x in cheapest_path:
-                if x.cost > max_cost:
-                    max_cost = x.cost
-            return max_cost
-
         nodes_dict = {node.name: node for node in nodes}
         self.paths = generate_all_paths(start, end, nodes_dict)
         self.paths = [path for path in self.paths if path and path[-1] == end]
@@ -69,18 +63,17 @@ class Pathfinder:
         for tmp_dr in drones:
             costed_paths.sort(key=lambda x: x[0])
             cheapest_cost, cheapest_path = costed_paths[0]
-            chosen_paths.append(cheapest_path)
-            
+
             adjusted_path = list(cheapest_path)
             t = 0
             while t < len(adjusted_path):
-                node = adjusted_path[t]
+                node = Node("w", "w", -9999999, -9999999)
                 # count how many already chosen drones are in this node at time t
                 occupied = 0
                 for chosen in chosen_paths:
-                    if t < len(chosen) and chosen[t] == node:
+                    if t < len(chosen) and chosen[t] == adjusted_path[t]:
                         occupied += 1
-                capacity = getattr(node, "max_drones", 1)
+                capacity = getattr(adjusted_path[t], "max_drones", 1)
                 if occupied >= int(capacity):
                     adjusted_path.insert(t, node)
                     t += 1

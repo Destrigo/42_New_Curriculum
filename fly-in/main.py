@@ -13,5 +13,6 @@ class Solution:
         Pathfinder(drones, nodes)
         Turns(drones, nodes)
 
+
 if __name__ == "__main__":
     Solution.main()

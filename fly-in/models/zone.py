@@ -16,7 +16,8 @@ class Node():
             self.cost = 1000000
         if self.zone == "priority":
             self.cost = 0.99999
-            self.priority_flag = True
+        if self.map_definition == "w":
+            self.max_drones = 999999
 
         self.connections = []
         self.color = color
