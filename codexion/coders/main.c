@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 13:18:40 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/03 20:28:47 by mtaranti         ###   ########.fr       */
+/*   Updated: 2025/12/03 23:21:33 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,18 +37,24 @@ int main(int arg, char **argv)
 
 void *routine(void *arg)
 {
-	int life;
+	const int id = arg->counter;
+	const int idr = id + 1;
+	const int idl = id - 1;
 
-	life = gettimeofday();
+	if (idr > arg->number_of_coders)
+		idr = idr - arg->number_of_coders;
+	if (idl == 0)
+		idl = idl + arg->number_of_coders;
+	
 	while (1)
 	{
 		//look at usb
 		//wait until they are both free by scheduler logic
 		//lock the usbs
-		compile();
+		compile(id, timestamp(), arg->time_to_compile);
 		//release usb and set cooldown
-		debug();
-		refactor();
+		debug(id, timestamp(), arg->time_to_debug);
+		refactor(id, timestamp(), arg->time_to_refactor);
 		//if number of compiles is enough, break
 		
 		//at any point if life <= 0 die
@@ -66,6 +72,7 @@ void execute_multithread(t_struct *data_input)
 		return ;
 	while (++i < data_input->number_of_coders)
 	{
+		data_input->counter++;
 		if (pthread_create(&(data_input->arr)[i], NULL, &routine, data_input) != 0)
 			return (free_threads(data_input->arr, i));
 	}
@@ -73,9 +80,9 @@ void execute_multithread(t_struct *data_input)
 	while (++k < data_input->number_of_coders)
 	{
 		if (pthread_join(data_input->arr[k], NULL) != 0)
-			return (free_all(data_input->arr, i));
+			return (free_threads(data_input->arr, i));
 	}
-	free_all(data_input->arr, i);
+	free_threads(data_input->arr, i);
 }
 
 t_struct *parse_input(int arg, char **argv)
@@ -98,5 +105,6 @@ t_struct *parse_input(int arg, char **argv)
 	input->number_of_compiles_required = atoi(argv[6]);
 	input->dongle_cooldown = atoi(argv[7]);
 	input->scheduler = is_fifo_or_edf(argv[8]);
+	data_input->counter = 0;
 	return (input);
 }

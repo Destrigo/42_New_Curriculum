@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   coders.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/03 20:31:27 by mtaranti         ###   ########.fr       */
+/*   Updated: 2025/12/03 23:19:05 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ typedef struct s_struct
 	int number_of_compiles_required;
 	int dongle_cooldown;
 	int scheduler; //bool 1/2 based on input
+	int counter; //for thread ID
+	long start_time_ms;
 	pthread_t	*arr;
 	
 }	t_struct;
@@ -42,5 +44,10 @@ int is_fifo_or_edf(char *str);
 int	input_validation(int arg, char **argv);
 t_struct *parse_input(int arg, char **argv);
 void free_threads(pthread_t *arr, int i);
+void compile(int id, int timeshot, int sleepms);
+void debug(int id, int timeshot, int sleepms);
+void refactor(int id, int timeshot, int sleepms);
+long timestamp(void);
+long now_ms(t_struct *data);
 
 #endif
