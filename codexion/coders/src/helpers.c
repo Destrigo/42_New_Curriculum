@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
+/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 15:45:26 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/03 23:17:33 by marco            ###   ########.fr       */
+/*   Updated: 2025/12/04 21:27:39 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,12 +69,21 @@ int	input_validation(int arg, char **argv)
 	return (0);
 }
 
-void free_threads(pthread_t *arr, int i)
+void free_all(t_struct_input *data)
 {
-	while (i > 0)
-	{
-		i--;
-		free(arr[i]);
-	}
-	free(arr);
+    int i;
+
+    if (data->arr)
+    {
+        i = -1;
+        while (++i < data->number_of_coders)
+        {
+            if (data->arr[i])
+                free(data->arr[i]);
+        }
+        free(data->arr);
+    }
+    if (data->usb_array)
+        free(data->usb_array);
+    free(data);
 }
