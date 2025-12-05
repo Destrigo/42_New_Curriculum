@@ -6,13 +6,13 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/04 21:33:57 by mtaranti         ###   ########.fr       */
+/*   Updated: 2025/12/05 12:36:41 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "coders.h"
 
-t_struct_input *parse_input(int arg, char **argv)
+t_struct_input *parse_input(char **argv)
 {
 	t_struct_input *data;
 
@@ -32,8 +32,16 @@ int parse_datastruct(t_struct_input *data, char **argv)
 
 	i = -1;
 	data->number_of_coders = atoi(argv[1]);
+	data->usb_array = malloc(sizeof(pthread_mutex_t) * data->number_of_coders);
+	if (!data->usb_array)
+		return (-1);
 	while (++i < data->number_of_coders)
 		pthread_mutex_init(&(data->usb_array[i]), NULL);
+	data->usb_last_free_time = malloc(sizeof(long) * data->number_of_coders);
+	if (!data->usb_last_free_time)
+		return (-1);
+	while (--i >= 0)
+		data->usb_last_free_time[i] = 0;
 	data->time_to_burnout = atoi(argv[2]);
 	data->flag_stop = 0;
 	data->time_to_compile = atoi(argv[3]);
@@ -43,6 +51,9 @@ int parse_datastruct(t_struct_input *data, char **argv)
 	data->dongle_cooldown = atoi(argv[7]);
 	data->scheduler = is_fifo_or_edf(argv[8]);
 	pthread_mutex_init(&data->print_mutex, NULL);
+	pthread_mutex_init(&data->monitor_mutex, NULL);
+	pthread_cond_init(&data->monitor_cond, NULL);
+	data->scheduler_queue = NULL;
 	return (0);
 }
 

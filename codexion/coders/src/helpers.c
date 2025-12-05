@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 15:45:26 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/04 21:27:39 by mtaranti         ###   ########.fr       */
+/*   Updated: 2025/12/05 12:41:10 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,14 @@ int is_fifo_or_edf(char *str)
 	int			i;
 
 	i = 0;
-	while (str[i] && fifo[i] && str[i] == fifo[i])
+	while (str[i] && fifo[i] && (str[i] == fifo[i]))
 	{
 		i++;
 		if (str[i] == '\0' && fifo[i] == '\0')
 			return (1);
 	}
 	i = 0;
-	while (str[i] && edf[i] && str[i] == fifo[i])
+	while (str[i] && edf[i] && (str[i] == fifo[i]))
 	{
 		i++;
 		if (str[i] == '\0' && edf[i] == '\0')
