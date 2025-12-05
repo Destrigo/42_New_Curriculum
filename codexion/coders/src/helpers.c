@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 15:45:26 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 12:41:10 by mtaranti         ###   ########.fr       */
+/*   Updated: 2025/12/05 14:31:21 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,19 +50,19 @@ int	input_validation(int arg, char **argv)
 {
 	if (arg != 9)
 		return (-1);
-	if (atoi(argv[1]) < 0 || is_number(argv[1]) != 0)
+	if (is_number(argv[1]) != 0)
 		return (-1);
-	if (atoi(argv[2]) < 0 || is_number(argv[2]) != 0)
+	if (is_number(argv[2]) != 0)
 		return (-1);
-	if (atoi(argv[3]) < 0 || is_number(argv[3]) != 0)
+	if (is_number(argv[3]) != 0)
 		return (-1);
-	if (atoi(argv[4]) < 0 || is_number(argv[4]) != 0)
+	if (is_number(argv[4]) != 0)
 		return (-1);
-	if (atoi(argv[5]) < 0 || is_number(argv[5]) != 0)
+	if (is_number(argv[5]) != 0)
 		return (-1);
-	if (atoi(argv[6]) < 0 || is_number(argv[6]) != 0)
+	if (is_number(argv[6]) != 0)
 		return (-1);
-	if (atoi(argv[7]) < 0 || is_number(argv[7]) != 0)
+	if (is_number(argv[7]) != 0)
 		return (-1);
 	if (is_fifo_or_edf(argv[8]) == 0)
 		return (-1);

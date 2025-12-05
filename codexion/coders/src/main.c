@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 13:18:40 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 12:17:54 by mtaranti         ###   ########.fr       */
+/*   Updated: 2025/12/05 14:45:45 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ int main(int arg, char **argv)
 {
 	t_struct_input	*data_input;
 	
-	if (input_validation(arg, argv) != 0)
-		return (write(2, "Invalid input", 13), 1);
+	// if (input_validation(arg, argv) != 0)
+	// 	return (write(2, "Invalid input", 13), 1);
 	data_input = parse_input(argv);
 	if (!data_input)
 		return (write(2, "Error allocating memory", 23), 1);	
@@ -36,7 +36,7 @@ int main(int arg, char **argv)
 	while (0 <= data_input->number_of_coders--)
 		pthread_mutex_destroy(&(data_input->usb_array[data_input->number_of_coders]));
 	free_all(data_input);
-	return (0);
+	return (arg);
 }
 
 void *routine(void *arg)
