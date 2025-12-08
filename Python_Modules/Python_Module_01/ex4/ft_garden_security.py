@@ -39,14 +39,14 @@ class SafePlant():
         print(f"{self.name}: {self.__height}cm, {self.__age} days old")
 
 
-if __name__ == "__main__":
-    """program"""
-    counter = 0
-    print("=== Garden Security System ===")
-    p1 = SafePlant("Rose", 25, 30)
-    p1.set_height(-5)
-    height = p1.get_height()
-    print(f"{height}")
-    p1.set_height(50)
-    height = p1.get_height()
-    print(f"{height}")
+# if __name__ == "__main__":
+#     """program"""
+#     counter = 0
+#     print("=== Garden Security System ===")
+#     p1 = SafePlant("Rose", 25, 30)
+#     p1.set_height(-5)
+#     height = p1.get_height()
+#     print(f"{height}")
+#     p1.set_height(50)
+#     height = p1.get_height()
+#     print(f"{height}")

@@ -42,14 +42,19 @@ class Vegetable(Plant):
         print(f"{self.name} is rich in {self.nutritional_value}")
 
 
-if __name__ == "__main__":
-    """program"""
-    print("=== Garden Plant Types ===")
-    print("")
-    rose = Flower("Rose", 25, 30, "red")
-    rose.bloom()
-    print("")
-    oak = Tree("Oak", 500, 1825, 50)
-    oak.produce_shade()
-    print("")
-    tomato = Vegetable("Tomato", 80, 90, "summer harvest", "vitamin C")
+# if __name__ == "__main__":
+#     """program"""
+#     print("=== Garden Plant Types ===")
+#     print("")
+#     rose = Flower("Rose", 25, 30, "red")
+#     tulip = Flower("Tulip", 50, 90, "yellow")
+#     rose.bloom()
+#     tulip.bloom()
+#     print("")
+#     oak = Tree("Oak", 500, 1825, 50)
+#     oak.produce_shade()
+#     birch = Tree("birch", 700, 1500, 90)
+#     birch.produce_shade()
+#     print("")
+#     tomato = Vegetable("Tomato", 80, 90, "summer harvest", "vitamin C")
+#     cucumber = Vegetable("Cucumber", 50, 120, "fall harvest", "vitamin D")

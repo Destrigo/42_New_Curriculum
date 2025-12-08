@@ -1,56 +1,66 @@
 class Plant:
     def __init__(self, name, height, days):
+        """initialising"""
         self.name = name
         self.height = height
         self.days = days
 
     def grow(self):
+        """add cm"""
         self.height = self.height + 1
-        print(self.name, "grew 1cm")
+        print(f"{self.name} grew 1cm")
 
     def summary(self):
-        print(self.name + ": " + str(self.height) + "cm")
+        """print info"""
+        print(f"{self.name}: {self.height}cm")
 
 
 class FloweringPlant(Plant):
     def __init__(self, name, height, days, flower_color):
+        """initialising"""
         super().__init__(name, height, days)
         self.flower_color = flower_color
         self.blooming = True
 
     def summary(self):
+        """print info"""
         if self.blooming:
-            print(self.name + ": " + str(self.height) + "cm, "
-                  + self.flower_color + " flowers (blooming)")
+            print(f"{self.name}: {self.height}cm, "
+                  f"{self.flower_color} flowers (blooming)")
         else:
-            print(self.name + ": " + str(self.height) + "cm, "
-                  + self.flower_color + " flowers (not blooming)")
+            print(f"{self.name}: {self.height}cm, "
+                  f"{self.flower_color} flowers (not blooming)")
 
 
 class PrizeFlower(FloweringPlant):
     def __init__(self, name, height, days, flower_color, prize_points):
+        """initialising"""
         super().__init__(name, height, days, flower_color)
         self.prize_points = prize_points
 
     def summary(self):
+        """print info"""
         FloweringPlant.summary(self)
-        print("Prize points:", self.prize_points)
+        print(f"Prize points: {self.prize_points}")
 
 
 class Garden:
     def __init__(self, owner):
+        """initialising"""
         self.owner = owner
         self.plants = [None, None, None, None, None, None, None, None]
         self.count = 0
         self.total_growth = 0
 
     def add_plant(self, plant):
+        """add one plant"""
         self.plants[self.count] = plant
         self.count = self.count + 1
-        print("Added", plant.name, "to", self.owner + "'s garden")
+        print(f"Added {plant.name} to {self.owner}'s garden")
 
     def grow_all(self):
-        print(self.owner, "is helping all plants grow...")
+        """every plant grows with loop"""
+        print(f"{self.owner} is helping all plants grow...")
         i = 0
         while i < self.count:
             plant = self.plants[i]
@@ -59,26 +69,30 @@ class Garden:
             i = i + 1
 
     def report(self):
-        print("=== " + self.owner + "'s Garden Report ===")
+        """print info about itself"""
+        print(f"=== {self.owner}'s Garden Report ===")
         print("Plants in garden:")
         i = 0
         while i < self.count:
             self.plants[i].summary()
             i = i + 1
-        print("Plants added:", self.count,
-              "Total growth:", self.total_growth, "cm")
+        print(f"Plants added: {self.count} "
+              f"Total growth: {self.total_growth}cm")
 
 
 class GardenManager:
     def __init__(self):
+        """initialising, owners are static"""
         self.owners = ["Alice", "Bob"]
         self.gardens = [None, None]
 
     class GardenStats:
         def __init__(self, garden):
+            """initialising"""
             self.garden = garden
 
         def type_counts(self):
+            """count how much of each"""
             regular = 0
             flowering = 0
             prize = 0
@@ -96,16 +110,18 @@ class GardenManager:
             return regular, flowering, prize
 
         def height_validation_test(self):
+            """test for height"""
             i = 0
-            ok = True
+            flag = True
             while i < self.garden.count:
                 h = self.garden.plants[i].height
                 if not GardenManager.validate_height(h):
-                    ok = False
+                    flag = False
                 i = i + 1
-            return ok
+            return flag
 
     def find_garden(self, owner):
+        """get index garden for owner"""
         i = 0
         while i < 2:
             if self.owners[i] == owner:
@@ -114,6 +130,7 @@ class GardenManager:
         return -1
 
     def add_garden(self, owner):
+        """auto explicatory"""
         i = self.find_garden(owner)
         if i == -1:
             return None
@@ -122,19 +139,22 @@ class GardenManager:
         return g
 
     def add_plant_to_garden(self, owner, plant):
+        """also autoesplicatory"""
         i = self.find_garden(owner)
         if i == -1:
             return
         g = self.gardens[i]
         g.add_plant(plant)
 
-    def grow_garden(self, owner, amount):
+    def grow_garden(self, owner):
+        """growall on one garden"""
         i = self.find_garden(owner)
         if i == -1:
             return
         self.gardens[i].grow_all()
 
     def generate_report_for(self, owner):
+        """report for one garden"""
         i = self.find_garden(owner)
         if i == -1:
             print("No garden for", owner)
@@ -199,7 +219,7 @@ if __name__ == "__main__":
     print("")
     manager = GardenManager.create_garden_network()
     print("")
-    manager.grow_garden("Alice", 1)
+    manager.grow_garden("Alice")
     print("")
     manager.generate_report_for("Alice")
     print("")

@@ -1,31 +1,38 @@
-class Plant():
-    def __init__(self, name: str, height: int, days: int):
-        """store info"""
+class Plant:
+    def __init__(self, name: str, height: int, age: int):
         self.name = name
-        self.days = days
         self.height = height
-        print(f"Created: {self.name} ({self.height}cm, {self.days} days old)")
+        self.age = age
 
-    def grow(self, cm: int):
-        """plant grows in height"""
-        self.height += cm
-
-    def age(self, duration: int):
-        """plant gets old"""
-        self.days += duration
-
-    def get_info(self):
-        """print info"""
-        print(f"{self.name}: {self.height}cm, {self.days} days old")
+    def summary(self):
+        print(f"Created: {self.name} ({self.height}cm, {self.age} days)")
 
 
-if __name__ == "__main__":
-    """program"""
-    counter = 0
-    print("=== Plant Factory Output ===")
-    p1 = Plant("Rose", 25, 30)
-    p2 = Plant("Oak", 200, 365)
-    p3 = Plant("Cactus", 5, 90)
-    p4 = Plant("Sunflower", 80, 45)
-    p5 = Plant("Fern", 15, 120)
-    print(f"Total plants created: {counter}")
+class PlantFactory:
+    def __init__(self):
+        self.plants = [Plant, Plant, Plant, Plant, Plant]
+        self.counter = 0
+
+    def create_plant(self, name, height, age):
+        plant = Plant(name, height, age)
+        self.plants[self.counter](plant)
+        self.counter += 1
+        plant.summary()
+
+    def create_many_plants(self):
+        self.create_plant("Rose", 25, 30)
+        self.create_plant("Oak", 200, 365)
+        self.create_plant("Cactus", 5, 90)
+        self.create_plant("Sunflower", 80, 45)
+        self.create_plant("Fern", 15, 120)
+
+    def display_total(self):
+        print(f"Total plants created: {len(self.plants)}")
+
+
+# if __name__ == "__main__":
+#     print("=== Plant Factory Output ===")
+
+#     factory = PlantFactory()
+#     factory.create_many_plants()
+#     factory.display_total()
