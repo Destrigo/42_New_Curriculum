@@ -5,7 +5,8 @@ if __name__ == "__main__":
     print("=== Player Score Analytics ===")
     arg = len(sys.argv)
     if arg == 1:
-        print("No scores provided. Usage: pythonr3 ft_score_analytics.py <score1> <score2> ...")
+        print("No scores provided. Usage: pythonr3 "
+              "ft_score_analytics.py <score1> <score2> ...")
     else:
         score_list = []
         i = 1

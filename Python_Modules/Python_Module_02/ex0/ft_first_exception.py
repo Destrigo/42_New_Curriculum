@@ -9,7 +9,7 @@ def check_temperature(temp_str: str) -> int | None:
     print(f"Testing temperature: {temp_str}")
     try:
         temp = int(temp_str)
-    except AttributeError:
+    except ValueError:
         print(f"Error: {temp_str} in not a number")
         return None
 
@@ -26,8 +26,14 @@ def check_temperature(temp_str: str) -> int | None:
 
 
 def test_temperature_input():
+    """checker func"""
     print("=== Garden Temperature Checker ===")
     tests = ["25", "abc", "100", "-50"]
     for t in tests:
         check_temperature(t)
     print("All tests completed - program didn't crash!")
+
+
+# if __name__ == "__main__":
+#     """main"""
+#     test_temperature_input()
