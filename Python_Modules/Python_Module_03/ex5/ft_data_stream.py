@@ -9,14 +9,14 @@ if __name__ == "__main__":
             player = players[i % len(players)]
             level = (i * 3) % 20 + 1
             if i % 10 == 0:
-                yield f"Event {i}: Player {player} (level {level}) found "
-                "treasure"
+                yield (f"Event {i}: Player {player} (level {level}) found "
+                       "treasure")
             elif i % 7 == 0:
-                yield f"Event {i}: Player {player} (level {level}) "
-                "leveled up"
+                yield (f"Event {i}: Player {player} (level {level}) "
+                       "leveled up")
             else:
-                yield f"Event {i}: Player {player} (level {level}) "
-                "killed monster"
+                yield (f"Event {i}: Player {player} (level {level}) "
+                       "killed monster")
 
     total_events = 0
     high_level = 0
@@ -66,15 +66,11 @@ if __name__ == "__main__":
 
     print("=== Generator Demonstration ===")
     fib_list = []
-    i = 0
     for num in fibonacci(10):
-        fib_list[i] = num
-        i += 1
+        fib_list += [num]
     print(f"Fibonacci sequence (first 10): {fib_list}")
 
     prime_list = []
-    i = 0
     for num in primes(5):
-        prime_list[i] = num
-        i += 1
+        prime_list += [num]
     print(f"Prime numbers (first 5): {prime_list}")

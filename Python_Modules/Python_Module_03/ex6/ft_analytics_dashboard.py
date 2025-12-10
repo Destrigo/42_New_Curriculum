@@ -14,6 +14,12 @@ if __name__ == "__main__":
                     "arena_champion", "speed_run"],
         "diana": ["first_kill", "level_8", "quest_complete"]
     }
+    active = {
+        "alice": True,
+        "bob": True,
+        "charlie": True,
+        "diana": False
+    }
     regions = ["north", "east", "central", "north"]
 
     print("=== List Comprehension Examples ===")
@@ -24,7 +30,7 @@ if __name__ == "__main__":
     scores_doubled = [scores[i] * 2 for i in range(len(scores))]
     print("Scores doubled:", scores_doubled)
 
-    active_players = [p for p in players if len(achievements.get(p, [])) > 0]
+    active_players = [p for p in players if active.get(p, []) is True]
     print("Active players:", active_players)
 
     print("")
@@ -47,12 +53,12 @@ if __name__ == "__main__":
     unique_players = {p for p in players}
     print("Unique players:", unique_players)
 
-    unique_achievements = {ach for p in players
-                           for ach in achievements.get(p, [])}
-    print("Unique achievements:", unique_achievements)
+    unique_achievements = set({ach for p in players
+                               for ach in achievements.get(p, [])})
+    print(f"Unique achievements: {unique_achievements}")
 
-    unique_regions = {regions[i] for i in range(len(regions))}
-    print("Active regions:", unique_regions)
+    unique_regions = set(regions)
+    print(f"Active regions: {unique_regions}")
 
     print("")
     print("=== Combined Analysis ===")
@@ -71,8 +77,8 @@ if __name__ == "__main__":
     top_performer = players[top_index]
     top_achievements = len(achievements.get(top_performer, []))
 
-    print("Total players:", total_players)
-    print("Total unique achievements:", total_unique_achievements)
-    print("Average score:", average_score)
+    print(f"Total players: {total_players}")
+    print(f"Total unique achievements: {total_unique_achievements}")
+    print(f"Average score: {average_score}")
     print(f"Top performer: {top_performer} "
           f"({max_score} points, {top_achievements} achievements)")

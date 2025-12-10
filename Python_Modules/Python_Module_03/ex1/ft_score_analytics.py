@@ -23,4 +23,8 @@ if __name__ == "__main__":
         print(f"Average score: {int(sum(score_list) / len(score_list))}")
         print(f"High score: {max(score_list)}")
         print(f"Low score: {min(score_list)}")
-        print(f"Score range: {max(score_list) - min(score_list)}")
+        if len(score_list) == 1:
+            rng = max(score_list)
+        else:
+            rng = max(score_list) - min(score_list)
+        print(f"Score range: {rng}")

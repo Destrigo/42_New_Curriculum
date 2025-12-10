@@ -28,9 +28,9 @@ if __name__ == "__main__":
         total = 0
         i = 0
         while i < len(keys_list):
-            k = keys_list[i]
-            v = inv.get(k)
-            total += v.get("qty") * v.get("value")
+            item = keys_list[i]
+            com = inv.get(item)
+            total += com.get("qty") * com.get("value")
             i += 1
         return total
 
@@ -75,8 +75,8 @@ if __name__ == "__main__":
               f"each = {qty * val} gold")
         i += 1
 
-    print("Inventory value: " + str(total_value(alice)) + " gold")
-    print("Item count: " + str(total_items(alice)) + " items")
+    print(f"Inventory value: {total_value(alice)} gold")
+    print(f"Item count: {total_items(alice)} items")
     cats = get_categories(alice)
     cat_keys = list(cats.keys())
     i = 0
@@ -119,8 +119,8 @@ if __name__ == "__main__":
             most_val = val
             most_val_name = name
         i += 1
-    print("Most valuable player: " + most_val_name + " "
-          "(" + str(most_val) + " gold)")
+    print(f"Most valuable player: {most_val_name} "
+          f"({most_val} gold)")
 
     i = 0
     most_items = -1
@@ -133,8 +133,8 @@ if __name__ == "__main__":
             most_items = c
             most_items_name = name
         i += 1
-    print("Most items: " + most_items_name + " "
-          "(" + str(most_items) + " items)")
+    print(f"Most items: {most_items_name} "
+          f"( {most_items} items)")
 
     rare_items = dict()
     i = 0
@@ -161,4 +161,4 @@ if __name__ == "__main__":
         if i < len(rare_keys) - 1:
             rare_str = rare_str + ", "
         i += 1
-    print("Rarest items: " + rare_str)
+    print(f"Rarest items: {rare_str}")
