@@ -145,7 +145,7 @@ class PolymorphismTester:
         print("=== Testing Exercise 0: Data Processor Foundation ===")
 
         try:
-            file_path = "../solution/ex0/stream_processor.py"
+            file_path = "solution/ex0/stream_processor.py"
 
             # Check type annotations first
             has_proper_typing, typing_issues = self.type_checker.check_file_typing(file_path)
@@ -225,7 +225,7 @@ class PolymorphismTester:
         print("\n=== Testing Exercise 1: Polymorphic Streams ===")
 
         try:
-            file_path = "../solution/ex1/data_stream.py"
+            file_path = "solution/ex1/data_stream.py"
 
             # Check type annotations first
             has_proper_typing, typing_issues = self.type_checker.check_file_typing(file_path)
@@ -306,7 +306,7 @@ class PolymorphismTester:
         print("\n=== Testing Exercise 2: Nexus Integration ===")
 
         try:
-            file_path = "../solution/ex2/nexus_pipeline.py"
+            file_path = "solution/ex2/nexus_pipeline.py"
 
             # Check type annotations first
             has_proper_typing, typing_issues = self.type_checker.check_file_typing(file_path)
@@ -413,7 +413,7 @@ class PolymorphismTester:
 def main() -> None:
     """Main entry point for the testing suite."""
     # Verify solution directory exists
-    solution_dir = Path("../solution")
+    solution_dir = Path("solution")
     if not solution_dir.exists():
         print("❌ Solution directory not found!")
         print("Please ensure your solutions are in the 'solution/' directory")

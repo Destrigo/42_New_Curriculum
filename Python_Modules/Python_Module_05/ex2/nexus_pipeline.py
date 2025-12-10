@@ -8,7 +8,7 @@ class ProcessingStage(Protocol):
 
 # Abstract base for pipelines
 class ProcessingPipeline(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         self.stages: List[ProcessingStage] = []
 
     def add_stage(self, stage: ProcessingStage) -> None:
@@ -36,7 +36,7 @@ class OutputStage:
 
 # Adapter classes for specific formats
 class JSONAdapter(ProcessingPipeline):
-    def __init__(self, pipeline_id: str):
+    def __init__(self, pipeline_id: str) -> None:
         super().__init__()
         self.pipeline_id = pipeline_id
 
@@ -47,7 +47,7 @@ class JSONAdapter(ProcessingPipeline):
         return f"[JSONAdapter-{self.pipeline_id}] {result}"
 
 class CSVAdapter(ProcessingPipeline):
-    def __init__(self, pipeline_id: str):
+    def __init__(self, pipeline_id: str) -> None:
         super().__init__()
         self.pipeline_id = pipeline_id
 
@@ -58,7 +58,7 @@ class CSVAdapter(ProcessingPipeline):
         return f"[CSVAdapter-{self.pipeline_id}] {result}"
 
 class StreamAdapter(ProcessingPipeline):
-    def __init__(self, pipeline_id: str):
+    def __init__(self, pipeline_id: str) -> None:
         super().__init__()
         self.pipeline_id = pipeline_id
 
@@ -70,7 +70,7 @@ class StreamAdapter(ProcessingPipeline):
 
 # Manager to orchestrate multiple pipelines
 class NexusManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.pipelines: List[ProcessingPipeline] = []
 
     def add_pipeline(self, pipeline: ProcessingPipeline) -> None:

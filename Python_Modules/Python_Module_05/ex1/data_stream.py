@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Union, Dict
+from typing import  Any, List, Dict, Union, Optional
 
 
 class DataStream(ABC):
@@ -32,7 +32,7 @@ class DataStream(ABC):
 
 
 class SensorStream(DataStream):
-    def __init__(self, stream_id: str):
+    def __init__(self, stream_id: str) -> None:
         super().__init__(stream_id)
         """initialize"""
         print("Initializing Sensor Stream...")
@@ -63,7 +63,7 @@ class SensorStream(DataStream):
 
 
 class TransactionStream(DataStream):
-    def __init__(self, stream_id: str):
+    def __init__(self, stream_id: str) -> None:
         super().__init__(stream_id)
         """initialize"""
         print("Initializing Transaction Stream...")
@@ -94,7 +94,7 @@ class TransactionStream(DataStream):
 
 
 class EventStream(DataStream):
-    def __init__(self, stream_id: str):
+    def __init__(self, stream_id: str) -> None:
         super().__init__(stream_id)
         """initialize"""
         print("Initializing Event Stream...")
@@ -125,13 +125,13 @@ class EventStream(DataStream):
 
 
 class StreamProcessor:
-    def __init__(self):
+    def __init__(self) -> None:
         self.streams: List[DataStream] = []
 
-    def register_stream(self, stream: DataStream):
+    def register_stream(self, stream: DataStream) -> None:
         self.streams.append(stream)
 
-    def process_all_batches(self, batches: List[List[Any]]):
+    def process_all_batches(self, batches: List[List[Any]]) -> None:
         for i in range(len(self.streams)):
             if i < len(batches):
                 try:
