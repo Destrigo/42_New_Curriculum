@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Union, Protocol
 
+
 # Protocol for stages
 class ProcessingStage(Protocol):
     def process(self, data: Any) -> Any:
         ...
+
 
 # Abstract base for pipelines
 class ProcessingPipeline(ABC):
@@ -18,16 +20,19 @@ class ProcessingPipeline(ABC):
     def process(self, data: Any) -> Any:
         pass
 
+
 # Stage implementations
 class InputStage:
     def process(self, data: Any) -> Any:
         # Example: validate or parse input
         return data
 
+
 class TransformStage:
     def process(self, data: Any) -> Any:
         # Example: enrich or transform data
         return f"Transformed({data})"
+
 
 class OutputStage:
     def process(self, data: Any) -> Any:
@@ -35,6 +40,7 @@ class OutputStage:
         return f"Output({data})"
 
 # Adapter classes for specific formats
+
 class JSONAdapter(ProcessingPipeline):
     def __init__(self, pipeline_id: str) -> None:
         super().__init__()
@@ -45,6 +51,7 @@ class JSONAdapter(ProcessingPipeline):
         for stage in self.stages:
             result = stage.process(result)
         return f"[JSONAdapter-{self.pipeline_id}] {result}"
+
 
 class CSVAdapter(ProcessingPipeline):
     def __init__(self, pipeline_id: str) -> None:
@@ -57,6 +64,7 @@ class CSVAdapter(ProcessingPipeline):
             result = stage.process(result)
         return f"[CSVAdapter-{self.pipeline_id}] {result}"
 
+
 class StreamAdapter(ProcessingPipeline):
     def __init__(self, pipeline_id: str) -> None:
         super().__init__()
@@ -67,6 +75,7 @@ class StreamAdapter(ProcessingPipeline):
         for stage in self.stages:
             result = stage.process(result)
         return f"[StreamAdapter-{self.pipeline_id}] {result}"
+
 
 # Manager to orchestrate multiple pipelines
 class NexusManager:
