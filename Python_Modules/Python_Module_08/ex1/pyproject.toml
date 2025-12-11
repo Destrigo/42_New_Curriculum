@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "matrix-operator"
+version = "0.1.0"
+description = "Matrix data analysis simulation"
+authors = ["Your Name <you@example.com>"]
+python = "^3.10"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.1.0"
+requests = "^2.31.0"
+matplotlib = "^3.7.2"
+numpy = "^1.26.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
