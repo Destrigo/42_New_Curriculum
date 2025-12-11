@@ -1,14 +1,15 @@
 if __name__ == "__main__":
     """main"""
+    fd = "../ancient_fragment.txt"
     print("=== CYBER ARCHIVES - DATA RECOVERY SYSTEM ===")
-    print(f"Accessing Storage Vault: ancient_fragment.txt")
+    print(f"Accessing Storage Vault: {fd}.txt")
 
     try:
-        with open("data-generator-tools.tar.gz", "r") as vault:
-            print("Connection established...")
+        with open(fd, "r") as vault:
+            print("\nConnection established...")
             print("RECOVERED DATA:")
             for line in vault:
                 print(line.strip())
-        print("Data recovery complete. Storage unit disconnected.")
+        print("\nData recovery complete. Storage unit disconnected.")
     except FileNotFoundError:
-        print("ERROR: Storage vault not found. Run data generator first.")
+        print("\nERROR: Storage vault not found. Run data generator first.")
