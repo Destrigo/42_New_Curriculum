@@ -19,7 +19,7 @@ def main():
         name="Arcane Warrior",
         cost=4,
         rarity="Epic",
-        attack=5,
+        att=5,
         health=7,
         base_mana=4,
     )

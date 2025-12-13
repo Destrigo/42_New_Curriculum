@@ -7,20 +7,18 @@ from typing import Dict
 class TournamentCard(Card, Combatable, Rankable):
     def __init__(self, name: str,
                  cost: int, rarity: str,
-                 attack: int, health: int) -> None:
+                 att: int, health: int) -> None:
         super().__init__(name, cost, rarity)
-        self.attack = attack
+        self.att = att
         self.health = health
         self.wins = 0
         self.losses = 0
         self.rating = 1200  # Default starting rating
 
-    # Card interface
     def play(self, game_state: Dict) -> Dict:
         return {"card_played": self.name, "mana_used": self.cost,
                 "effect": "Creature summoned to battlefield"}
 
-    # Combatable interface
     def attack(self, target) -> Dict:
         damage = self.attack
         return {"attacker": self.name,
@@ -37,7 +35,7 @@ class TournamentCard(Card, Combatable, Rankable):
                 "still_alive": still_alive}
 
     def get_combat_stats(self) -> Dict:
-        return {"attack": self.attack, "health": self.health}
+        return {"att": self.att, "health": self.health}
 
     # Rankable interface
     def calculate_rating(self) -> int:

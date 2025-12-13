@@ -15,18 +15,17 @@ class EliteCard(Card, Combatable, Magical):
         name: str,
         cost: int,
         rarity: str,
-        attack: int,
+        att: int,
         health: int,
         base_mana: int = 0,
     ):
         super().__init__(name, cost, rarity)
 
-        if attack <= 0 or health <= 0:
+        if att <= 0 or health <= 0:
             raise ValueError("Attack and health must be positive integers.")
 
-        self.attack = attack
+        self.att = att
         self.health = health
-        # mana pool used for magic operations
         self.mana = base_mana
 
     # Card abstract implementation
@@ -42,7 +41,7 @@ class EliteCard(Card, Combatable, Magical):
         return {
             "attacker": self.name,
             "target": getattr(target, "name", str(target)),
-            "damage": self.attack,
+            "damage": self.att,
             "combat_type": "melee",
         }
 
@@ -63,14 +62,11 @@ class EliteCard(Card, Combatable, Magical):
         }
 
     def get_combat_stats(self) -> Dict:
-        return {"attack": self.attack, "health": self.health}
+        return {"att": self.att, "health": self.health}
 
-    # Magical implementations
     def cast_spell(self, spell_name: str, targets: List) -> Dict:
-        # For demonstration, choose a fixed mana cost per spell name or default
         mana_cost = 4 if spell_name.lower() == "fireball" else 2
         if self.mana < mana_cost:
-            # If insufficient mana, we still return a structure failure
             return {
                 "caster": self.name,
                 "spell": spell_name,
