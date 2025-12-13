@@ -1,4 +1,4 @@
-from CreatureCard import CreatureCard
+from .CreatureCard import CreatureCard
 
 
 class DummyTarget:
@@ -9,7 +9,7 @@ class DummyTarget:
         self.health = 2
 
 
-def main():
+def main() -> None:
     print("=== DataDeck Card Foundation ===")
     print("Testing Abstract Base Class Design:")
 

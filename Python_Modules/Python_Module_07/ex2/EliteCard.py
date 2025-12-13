@@ -1,5 +1,5 @@
 from typing import Dict, List
-from ..ex0.Card import Card
+from ex0.Card import Card
 from .Combatable import Combatable
 from .Magical import Magical
 

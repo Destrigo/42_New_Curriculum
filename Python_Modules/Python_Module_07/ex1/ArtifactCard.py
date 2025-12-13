@@ -1,5 +1,5 @@
 from typing import Dict
-from ..ex0.Card import Card
+from ex0.Card import Card
 
 
 class ArtifactCard(Card):
