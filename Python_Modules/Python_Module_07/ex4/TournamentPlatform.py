@@ -18,7 +18,7 @@ class TournamentPlatform:
         card1 = self.cards[card1_id]
         card2 = self.cards[card2_id]
 
-        if card1.attack >= card2.attack:
+        if card1.att >= card2.att:
             winner, loser = (card1, card2)
         else:
             winner, loser = (card2, card1)

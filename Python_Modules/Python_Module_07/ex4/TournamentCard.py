@@ -37,9 +37,7 @@ class TournamentCard(Card, Combatable, Rankable):
     def get_combat_stats(self) -> Dict:
         return {"att": self.att, "health": self.health}
 
-    # Rankable interface
     def calculate_rating(self) -> int:
-        # Simple Elo-like adjustment
         return self.rating
 
     def update_wins(self, wins: int) -> None:
@@ -53,7 +51,6 @@ class TournamentCard(Card, Combatable, Rankable):
     def get_rank_info(self) -> Dict:
         return {"rating": self.rating, "record": f"{self.wins}-{self.losses}"}
 
-    # Tournament stats
     def get_tournament_stats(self) -> Dict:
         return {"name": self.name,
                 "rating": self.rating,

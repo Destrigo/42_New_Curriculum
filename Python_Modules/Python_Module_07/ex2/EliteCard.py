@@ -28,7 +28,6 @@ class EliteCard(Card, Combatable, Magical):
         self.health = health
         self.mana = base_mana
 
-    # Card abstract implementation
     def play(self, game_state: Dict) -> Dict:
         return {
             "card_played": self.name,
@@ -36,7 +35,6 @@ class EliteCard(Card, Combatable, Magical):
             "effect": "Elite unit summoned with combat and magic capabilities",
         }
 
-    # Combatable implementations
     def attack(self, target) -> Dict:
         return {
             "attacker": self.name,

@@ -8,9 +8,9 @@ def main():
 
     print("Registering Tournament Cards...")
     fire_dragon = TournamentCard("Fire Dragon", cost=5, rarity="Legendary",
-                                 attack=7, health=5)
+                                 att=7, health=5)
     ice_wizard = TournamentCard("Ice Wizard", cost=4, rarity="Epic",
-                                attack=6, health=4)
+                                att=6, health=4)
 
     id1 = platform.register_card(fire_dragon)
     id2 = platform.register_card(ice_wizard)
