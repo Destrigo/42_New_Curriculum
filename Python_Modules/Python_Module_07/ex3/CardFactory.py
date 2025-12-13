@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from ..ex0.Card import Card
 from typing import Dict
 
+
 class CardFactory(ABC):
     @abstractmethod
     def create_creature(self, name_or_power) -> Card:

@@ -5,7 +5,7 @@ from ..ex0.Card import Card
 
 class Deck:
     """Deck manager capable of storing any card type."""
-    def __init__(self):
+    def __init__(self) -> None:
         self.cards: List[Card] = []
 
     def add_card(self, card: Card) -> None:
@@ -28,10 +28,14 @@ class Deck:
 
     def get_deck_stats(self) -> Dict:
         total = len(self.cards)
-        creatures = sum(1 for c in self.cards if c.__class__.__name__ == "CreatureCard")
-        spells = sum(1 for c in self.cards if c.__class__.__name__ == "SpellCard")
-        artifacts = sum(1 for c in self.cards if c.__class__.__name__ == "ArtifactCard")
-        avg_cost = sum(c.cost for c in self.cards) / total if total > 0 else 0.0
+        creatures = sum(1 for c in self.cards
+                        if c.__class__.__name__ == "CreatureCard")
+        spells = sum(1 for c in self.cards
+                     if c.__class__.__name__ == "SpellCard")
+        artifacts = sum(1 for c in self.cards
+                        if c.__class__.__name__ == "ArtifactCard")
+        avg_cost = sum(c.cost for c
+                       in self.cards) / total if total > 0 else 0.0
 
         return {
             "total_cards": total,

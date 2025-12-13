@@ -2,21 +2,26 @@ from ex4.TournamentCard import TournamentCard
 from typing import Dict, List
 import uuid
 
+
 class TournamentPlatform:
     def __init__(self):
         self.cards: Dict[str, TournamentCard] = {}
         self.matches_played = 0
 
     def register_card(self, card: TournamentCard) -> str:
-        card_id = f"{card.name.lower().replace(' ','_')}_{str(uuid.uuid4())[:8]}"
+        card_id = f"{card.name.lower().replace(' ', '_')
+                     }_{str(uuid.uuid4())[:8]}"
         self.cards[card_id] = card
         return card_id
 
     def create_match(self, card1_id: str, card2_id: str) -> Dict:
         card1 = self.cards[card1_id]
         card2 = self.cards[card2_id]
-        # Simple deterministic combat: higher attack wins
-        winner, loser = (card1, card2) if card1.attack >= card2.attack else (card2, card1)
+
+        if card1.attack >= card2.attack:
+            winner, loser = (card1, card2)
+        else:
+            winner, loser = (card2, card1)
         winner.update_wins(1)
         loser.update_losses(1)
         self.matches_played += 1
@@ -29,13 +34,17 @@ class TournamentPlatform:
 
     def get_leaderboard(self) -> List:
         return sorted(
-            [{"id": cid, **card.get_rank_info()} for cid, card in self.cards.items()],
+            [{"id": cid,
+              **card.get_rank_info()} for cid, card in self.cards.items()],
             key=lambda x: x["rating"],
             reverse=True
         )
 
     def generate_tournament_report(self) -> Dict:
-        avg_rating = sum(card.calculate_rating() for card in self.cards.values()) // len(self.cards) if self.cards else 0
+        avg_rating = 0
+        for card in self.cards.values():
+            avg_rating += card.calculate_rating()
+        avg_rating //= len(self.cards) if self.cards else 0
         return {
             "total_cards": len(self.cards),
             "matches_played": self.matches_played,

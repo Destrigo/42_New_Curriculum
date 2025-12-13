@@ -10,7 +10,8 @@ class SpellCard(Card):
         self.effect_type = effect_type
 
     def resolve_effect(self, targets: List) -> Dict:
-        """Resolves spell mechanics. This is a fake implementation for demonstration."""
+        """Resolves spell mechanics. This i
+          a fake implementation for demonstration."""
         return {
             "spell": self.name,
             "effect_type": self.effect_type,
@@ -22,5 +23,7 @@ class SpellCard(Card):
         return {
             "card_played": self.name,
             "mana_used": self.cost,
-            "effect": f"Deal 3 damage to target" if self.effect_type == "damage" else f"Effect: {self.effect_type}"
+            "effect": ("Deal 3 damage to "
+                       "target" if self.effect_type == "damage"
+                       "" else f"Effect: {self.effect_type}")
         }

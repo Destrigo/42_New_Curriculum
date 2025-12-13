@@ -2,6 +2,7 @@ from .CardFactory import CardFactory
 from .GameStrategy import GameStrategy
 from typing import Dict
 
+
 class GameEngine:
     def __init__(self):
         self.factory: CardFactory = None
@@ -11,7 +12,9 @@ class GameEngine:
         self.turns_simulated = 0
         self.actions_log = []
 
-    def configure_engine(self, factory: CardFactory, strategy: GameStrategy) -> None:
+    def configure_engine(self,
+                         factory: CardFactory,
+                         strategy: GameStrategy) -> None:
         self.factory = factory
         self.strategy = strategy
         self.hand = [factory.create_creature("Fire Dragon"),

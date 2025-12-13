@@ -5,15 +5,15 @@ class CreatureCard(Card):
     def __init__(
                 self, name: str, cost: int,
                 rarity: str, attack: int, health: int) -> None:
-                super().__init__(name, cost, rarity)
-                if attack < 0:
-                    print("Error! Creatures can't have negative attack value")
-                else:
-                    self.attack = attack
-                if health < 0:
-                    print("Error! Creatures can't have negative health value")
-                else:
-                    self.health = health
+        super().__init__(name, cost, rarity)
+        if attack < 0:
+            print("Error! Creatures can't have negative attack value")
+        else:
+            self.attack = attack
+        if health < 0:
+            print("Error! Creatures can't have negative health value")
+        else:
+            self.health = health
 
     def play(self, game_state: dict) -> dict:
         """can do stuff"""

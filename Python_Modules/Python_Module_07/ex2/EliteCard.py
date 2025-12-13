@@ -48,7 +48,7 @@ class EliteCard(Card, Combatable, Magical):
 
     def defend(self, incoming_damage: int) -> Dict:
         """
-        Very simple defense: block up to half of incoming damage (rounded down).
+        Very simple defense: block up to half of incoming damage (rounded down)
         Remaining damage reduces health.
         """
         damage_blocked = incoming_damage // 2
@@ -70,7 +70,7 @@ class EliteCard(Card, Combatable, Magical):
         # For demonstration, choose a fixed mana cost per spell name or default
         mana_cost = 4 if spell_name.lower() == "fireball" else 2
         if self.mana < mana_cost:
-            # If insufficient mana, we still return a structure indicating failure
+            # If insufficient mana, we still return a structure failure
             return {
                 "caster": self.name,
                 "spell": spell_name,

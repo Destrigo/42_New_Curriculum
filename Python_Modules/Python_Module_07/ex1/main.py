@@ -11,7 +11,9 @@ def main():
     deck = Deck()
     fire_dragon = CreatureCard("Fire Dragon", 5, "Legendary", 7, 5)
     lightning_bolt = SpellCard("Lightning Bolt", 3, "Rare", "damage")
-    mana_crystal = ArtifactCard("Mana Crystal", 2, "Common", 3, "Permanent: +1 mana per turn")
+    mana_crystal = ArtifactCard("Mana "
+                                "Crystal", 2, "Common", 3, "Permanent: "
+                                "+1 mana per turn")
 
     deck.add_card(fire_dragon)
     deck.add_card(lightning_bolt)
@@ -25,7 +27,8 @@ def main():
 
     for i in range(3):
         card = deck.draw_card()
-        print(f"Drew: {card.name} ({card.__class__.__name__.replace('Card', '')})")
+        print("Drew: "
+              f"{card.name} ({card.__class__.__name__.replace('Card', '')})")
         result = card.play({})
         print("Play result:", result)
 
