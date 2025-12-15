@@ -6,9 +6,9 @@ import site
 def main():
     print("=== MATRIX STATUS CHECK ===\n")
 
-    venv = getattr(sys, 'real_prefix',
-                   None) or getattr(sys, 'base_prefix', sys.prefix)
-    in_venv = sys.prefix != getattr(sys, "base_prefix", sys.prefix)
+    real_prefix = getattr(sys, 'real_prefix', None)
+    base_prefix = getattr(sys, 'base_prefix', sys.prefix)
+    in_venv = sys.prefix != (real_prefix or base_prefix)
 
     current_python = sys.executable
     print(f"Current Python: {current_python}")
@@ -22,9 +22,9 @@ def main():
         print("\nSUCCESS: You're in an isolated environment!")
         print("Safe to install packages without affecting the global system.")
         print("Package installation "
-              f"path:\n{site.getsitepackages()[0] if
-                        site.getsitepackages() else
-                        site.getusersitepackages()}")
+              f"path:\n{(site.getsitepackages()[0]
+                         if site.getsitepackages()
+                         else site.getusersitepackages())}")
     else:
         print("Virtual Environment: None detected")
         print("\nWARNING: You're in the global environment!")
