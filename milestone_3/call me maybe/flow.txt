@@ -1,0 +1,159 @@
+┌────────────────────────────┐
+│ Program Start              │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Load prompts.json          │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Load functions.json        │
+│ → Build SchemaRegistry     │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Load vocabulary.json       │
+│ (token ↔ string mapping)  │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Initialize LLM model       │
+│ (Small_LLM_Model)          │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ For each prompt:           │
+│  ├─ Initialize FSM         │
+│  ├─ Initialize context     │
+│  └─ Generate JSON          │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Write output JSON file     │
+└────────────────────────────┘
+
+
+┌──────────────────────────────┐
+│ FSM state + runtime context │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ Build allowed token set     │
+│ from:                       │
+│  • FSM state                │
+│  • SchemaRegistry           │
+│  • Current argument type    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ Call LLM.get_logits()       │
+│ → raw logits for vocab     │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ Mask logits                 │
+│ (invalid tokens = -∞)       │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ Select highest-prob token   │
+│ (no sampling)               │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ Append token to output      │
+│ Update FSM + context        │
+└──────────────┬───────────────┘
+               │
+        Is FSM == END?
+               │
+        ┌──────┴───────┐
+        │              │
+       No             Yes
+        │              │
+        ▼              ▼
+   Loop again      JSON complete
+
+
+START
+  │
+  ▼
+"{"
+  │
+  ▼
+"prompt"
+  │
+  ▼
+:
+  │
+  ▼
+"<original prompt string>"
+  │
+  ▼
+,
+  │
+  ▼
+"fn_name"
+  │
+  ▼
+:
+  │
+  ▼
+"<function name chosen by model>"
+  │
+  ▼
+,
+  │
+  ▼
+"args"
+  │
+  ▼
+:
+  │
+  ▼
+"{"
+  │
+  ▼
+"<arg_name>" : <arg_value>
+  │
+  ├── , → next arg
+  │
+  ▼
+"}"
+  │
+  ▼
+"}"
+  │
+  ▼
+END
+
+
+┌───────────────────────────┐
+│ YOU (your code)           │
+├───────────────────────────┤
+│ • JSON structure          │
+│ • FSM transitions         │
+│ • Token masking           │
+│ • Type correctness        │
+│ • Schema enforcement      │
+└──────────────┬────────────┘
+               │
+               ▼
+┌───────────────────────────┐
+│ LLM                        │
+├───────────────────────────┤
+│ • Function choice         │
+│ • Argument values         │
+│ • Semantic interpretation │
+└───────────────────────────┘
