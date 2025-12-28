@@ -157,3 +157,154 @@ END
 │ • Argument values         │
 │ • Semantic interpretation │
 └───────────────────────────┘
+
+End-to-End Pipeline Explanation (One Page)
+Objective
+
+The objective of this project is to transform a natural-language prompt into a deterministic, schema-valid JSON function call, using a Large Language Model without allowing hallucinations or invalid output.
+
+The model is constrained so that it can only select from predefined functions and arguments and must follow a strict JSON structure.
+
+High-Level Flow
+
+Input Loading
+
+Schema Construction
+
+Prompt Encoding
+
+FSM-Driven Token Generation
+
+Schema-Validated Function Selection
+
+Final JSON Output
+
+Each step has a single responsibility and is independently testable.
+
+Step 1 – Input Loading
+
+Two JSON files are loaded:
+
+Prompts file
+Contains a list of natural-language prompts.
+
+Function definitions file
+Contains all allowed functions, their argument names, and argument types.
+
+No assumptions are hard-coded.
+The system adapts dynamically to the contents of these files.
+
+Step 2 – Schema Construction
+
+From the function definitions, the system builds an internal schema:
+
+List of valid function names
+
+For each function:
+
+Valid argument names
+
+Expected argument types
+
+This schema defines what the model is allowed to express, not how it expresses it.
+
+The schema is later used to:
+
+Restrict valid tokens
+
+Validate argument structure
+
+Reject invalid transitions
+
+Step 3 – Prompt Encoding
+
+Each prompt is passed as a single input string to the tokenizer.
+
+The tokenizer converts the string into a sequence of token IDs.
+
+At this stage:
+
+The model sees the full prompt context
+
+No output has been generated yet
+
+No constraints are applied yet
+
+Step 4 – FSM-Driven Constrained Decoding
+
+Output generation happens one token at a time.
+
+A Finite State Machine (FSM) tracks the current JSON position:
+
+Beginning of object
+
+Key
+
+Colon
+
+Value
+
+String / Number
+
+End of object
+
+For each step:
+
+The model produces logits for all tokens
+
+The FSM and schema compute allowed tokens
+
+All other tokens are masked out
+
+The highest-scoring allowed token is selected
+
+The FSM advances to the next state
+
+The model never generates free text.
+
+Step 5 – Function Selection & Argument Filling
+
+The model does not invent functions.
+
+Instead:
+
+Function names are restricted to those in the schema
+
+Argument keys must match the selected function
+
+Argument values must conform to expected types
+
+The model’s role is reduced to:
+
+Choosing the correct option from a predefined set
+
+All structure is enforced externally.
+
+Step 6 – Final JSON Output
+
+Generation stops only when the FSM reaches a valid terminal state.
+
+The output is guaranteed to be:
+
+Valid JSON
+
+Schema-compliant
+
+Deterministic
+
+Fully parseable
+
+No post-processing or repair is required.
+
+Key Design Principle
+
+The LLM provides intelligence.
+The FSM provides correctness.
+
+This separation ensures:
+
+Reliability
+
+Explainability
+
+Auditability
