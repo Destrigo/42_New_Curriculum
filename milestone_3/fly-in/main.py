@@ -8,10 +8,8 @@ class Solution:
         """main"""
         with open("map.txt") as f:
             parsed_data = Parser(f)
-        drones = parsed_data.drones
-        nodes = parsed_data.nodes
-        Pathfinder(drones, nodes)
-        Turns(drones, nodes)
+        Pathfinder(parsed_data.drones, parsed_data.nodes)
+        Turns(parsed_data.drones, parsed_data.nodes)
 
 
 if __name__ == "__main__":
