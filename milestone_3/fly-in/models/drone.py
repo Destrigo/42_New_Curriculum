@@ -32,6 +32,6 @@ class Drone:
             else:
                 self.current_zone = self.path.pop(0)
             if self.restricted_movement_turns_buffer == 0:
-                if self.current_zone.name == "goal":
+                if self.current_zone.map_definition == "end_hub":
                     self.is_arrived = True
             return
