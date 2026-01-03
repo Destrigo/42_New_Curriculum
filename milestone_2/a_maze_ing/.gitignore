@@ -1,0 +1,6 @@
+.python-version
+.coverage
+__pycache__
+maze.txt
+mazegen.egg-info
+
