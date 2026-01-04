@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 15:45:26 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 14:31:21 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 19:40:43 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ int is_fifo_or_edf(char *str)
 			return (1);
 	}
 	i = 0;
-	while (str[i] && edf[i] && (str[i] == fifo[i]))
+	while (str[i] && edf[i] && (str[i] == edf[i]))
 	{
 		i++;
 		if (str[i] == '\0' && edf[i] == '\0')
@@ -37,7 +37,7 @@ int is_fifo_or_edf(char *str)
 
 int	is_number(char *str)
 {
-	while(str)
+	while(*str)
 	{
 		if (*str < 48 || *str > 57)
 			return (-1);
@@ -85,5 +85,7 @@ void free_all(t_struct_input *data)
     }
     if (data->usb_array)
         free(data->usb_array);
+    if (data->usb_last_free_time)
+        free(data->usb_last_free_time);
     free(data);
 }

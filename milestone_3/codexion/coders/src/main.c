@@ -6,32 +6,22 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 13:18:40 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 14:45:45 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 19:45:39 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "coders.h"
 
-/// @param argv 
-// 	number_of_coders num of coders and dongles
-// 	time_to_burnout(ms)  time to die
-// 	time_to_compile time to compile
-// 	time_to_debug time to debug
-// 	time_to_refactor time to refactor - then it goest straight to compile
-// 	number_of_compiles_required all coders have compiled, it stops. if not, go forever until one dies
-// 	dongle_cooldown dongle cooldown between use
-// 	scheduler fifo or edf
 int main(int arg, char **argv)
 {
 	t_struct_input	*data_input;
 	
-	// if (input_validation(arg, argv) != 0)
-	// 	return (write(2, "Invalid input", 13), 1);
+	if (input_validation(arg, argv) != 0)
+		return (write(2, "Invalid input\n", 14), 1);
 	data_input = parse_input(argv);
 	if (!data_input)
 		return (write(2, "Error allocating memory", 23), 1);	
 	execute_multithread(data_input);
-	pthread_mutex_unlock(&data_input->print_mutex);
 	pthread_mutex_destroy(&data_input->print_mutex);
 	while (0 <= data_input->number_of_coders--)
 		pthread_mutex_destroy(&(data_input->usb_array[data_input->number_of_coders]));
@@ -41,40 +31,35 @@ int main(int arg, char **argv)
 
 void *routine(void *arg)
 {
-	t_struct_coder *coder;
-	coder = (t_struct_coder *)arg;
-	const long left = coder->id;
-    const long right = (coder->id + 1) % coder->data_input->number_of_coders;
+    t_struct_coder *coder;
+    coder = (t_struct_coder *)arg;
+    const long left = coder->id - 1;
+    const long right = coder->id % coder->data_input->number_of_coders;
 
-	coder->last_action_time = timestamp(); //create time to die
-	while (coder->data_input->flag_stop != 1 && coder->flag_burnout != 1)
-	{
-		//queue
-		enqueue_coder(coder->data_input, coder);
-		pthread_mutex_lock(&coder->data_input->monitor_mutex);
+    coder->last_action_time = timestamp();
+    
+    while (coder->data_input->flag_stop != 1 && coder->flag_burnout != 1)
+    {
+        enqueue_coder(coder->data_input, coder);
+        pthread_mutex_lock(&coder->data_input->monitor_mutex);
         while (!can_take_dongles(coder))
             pthread_cond_wait(&coder->data_input->monitor_cond, &coder->data_input->monitor_mutex);
-        //dequeue in its turn
-		dequeue_coder(coder->data_input, coder);
-        pthread_mutex_unlock(&coder->data_input->monitor_mutex);
-		 // Lock actual USBs
         pthread_mutex_lock(&coder->data_input->usb_array[left]);
         pthread_mutex_lock(&coder->data_input->usb_array[right]);
-		compile(coder->data_input, coder->id, timestamp(), coder->data_input->time_to_compile);
-		//unlock usb
-		coder->data_input->usb_last_free_time[left] = timestamp();
-		coder->data_input->usb_last_free_time[right] = timestamp();
-		pthread_mutex_unlock(&coder->data_input->usb_array[left]);
-		pthread_mutex_unlock(&coder->data_input->usb_array[right]);
-		pthread_cond_broadcast(&coder->data_input->monitor_cond); 
-		//check if finished
-		if (++coder->counter_compiled == coder->data_input->number_of_compiles_required)
-			coder->flag_finished = 1;
-		//set usb cooldown
-		debug(coder->data_input, (coder)->id, timestamp(), coder->data_input->time_to_debug);
-		refactor(coder->data_input, (coder)->id, timestamp(), coder->data_input->time_to_refactor);
-	}
-	return (NULL);
+        dequeue_coder(coder->data_input, coder);
+        pthread_mutex_unlock(&coder->data_input->monitor_mutex);
+        compile(coder->data_input, coder->id, timestamp(), coder->data_input->time_to_compile);
+        coder->data_input->usb_last_free_time[left] = timestamp();
+        coder->data_input->usb_last_free_time[right] = timestamp();
+        pthread_mutex_unlock(&coder->data_input->usb_array[left]);
+        pthread_mutex_unlock(&coder->data_input->usb_array[right]);
+        pthread_cond_broadcast(&coder->data_input->monitor_cond); 
+        if (++coder->counter_compiled == coder->data_input->number_of_compiles_required)
+            coder->flag_finished = 1;
+        debug(coder->data_input, coder->id, timestamp(), coder->data_input->time_to_debug);
+        refactor(coder->data_input, coder->id, timestamp(), coder->data_input->time_to_refactor);
+    }
+    return (NULL);
 }
 
 void *monitor_routine(void *arg)
@@ -93,7 +78,7 @@ void *monitor_routine(void *arg)
 			if (now_ms(data->arr[i]) >= data->time_to_burnout)
 			{
 				pthread_mutex_lock(&data->print_mutex);
-				printf("%ld %d %s\n", timestamp(), i, "is bornout");
+				printf("%ld %d %s\n", timestamp(), i + 1, "is burnout");
 				data->flag_stop = 1;
 				pthread_cond_broadcast(&data->monitor_cond); //need to understand
 				return (NULL);
@@ -103,7 +88,7 @@ void *monitor_routine(void *arg)
 				if (++counter == data->number_of_coders)
 				{
 					pthread_mutex_lock(&data->print_mutex);
-					printf("%ld %d %s\n", timestamp(), i, "is bornout");
+					printf("%ld %d %s\n", timestamp(), i + 1, "finished all compilations");
 					data->flag_stop = 1;
 					pthread_cond_broadcast(&data->monitor_cond); //need to understand
 					return (NULL);

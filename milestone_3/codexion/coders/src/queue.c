@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 21:44:04 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 12:01:00 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 19:44:44 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void enqueue_coder(t_struct_input *data, t_struct_coder *coder)
 
 void dequeue_coder(t_struct_input *data, t_struct_coder *coder)
 {
-    pthread_mutex_lock(&data->monitor_mutex);
+    // Note: monitor_mutex should already be locked by caller
     t_queue_node *prev;
     t_queue_node *tmp;
 
@@ -79,8 +79,7 @@ void dequeue_coder(t_struct_input *data, t_struct_coder *coder)
         prev = tmp;
         tmp = tmp->next;
     }
-
-    pthread_mutex_unlock(&data->monitor_mutex);
+    // Don't lock/unlock here - caller manages monitor_mutex
 }
 
 int can_take_dongles(t_struct_coder *coder)
@@ -88,24 +87,19 @@ int can_take_dongles(t_struct_coder *coder)
     t_struct_input *data;
     data = coder->data_input;
 
-    const long left = coder->id;
-    const long right = (coder->id + 1) % data->number_of_coders;
+    const long left = coder->id - 1;  // Fixed: 0-based indexing
+    const long right = coder->id % data->number_of_coders;  // Fixed: 0-based
     const long now = timestamp();
 
-	// assume monitor_mutex is already locked when called
+    // Check if this coder is first in queue
     if (!data->scheduler_queue || data->scheduler_queue->coder != coder)
         return (0);
-    // check USB cooldown
+    
+    // Check USB cooldown only
     if (now - data->usb_last_free_time[left] < data->dongle_cooldown ||
         now - data->usb_last_free_time[right] < data->dongle_cooldown)
         return (0);
-    // check if both USBs are available
-    if (pthread_mutex_trylock(&data->usb_array[left]) != 0)
-        return (0);
-    if (pthread_mutex_trylock(&data->usb_array[right]) != 0)
-        return (pthread_mutex_unlock(&data->usb_array[left]), 0);
-    // both are available, unlock (actual lock happens later in routine)
-    pthread_mutex_unlock(&data->usb_array[left]);
-    pthread_mutex_unlock(&data->usb_array[right]);
+    
+    // Don't check mutex availability here - let routine() handle actual locking
     return (1);
 }
