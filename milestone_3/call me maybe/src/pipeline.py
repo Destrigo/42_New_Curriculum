@@ -3,10 +3,10 @@
 import json
 from typing import Any, List, Dict
 
-from llm_sdk import Small_LLM_Model
-from fsm import FunctionCallingFSM
-from decoder import ConstrainedDecoder
-from errors import FileFormatError, DecoderError, FSMError
+from .llm_sdk.small_llm_model import Small_LLM_Model
+from .fsm import FunctionCallingFSM
+from .decoder import ConstrainedDecoder
+from .errors import FileFormatError, DecoderError, FSMError
 
 
 class FunctionCallingPipeline:

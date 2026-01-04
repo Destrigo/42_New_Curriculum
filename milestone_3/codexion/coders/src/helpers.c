@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 15:45:26 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/04 19:40:43 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 21:30:44 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,17 @@ int	input_validation(int arg, char **argv)
 
 void free_all(t_struct_input *data)
 {
-    int i;
+int i;
+    t_queue_node *tmp;
+    t_queue_node *next;
+
+    tmp = data->scheduler_queue;
+    while (tmp)
+    {
+        next = tmp->next;
+        free(tmp);
+        tmp = next;
+    }
 
     if (data->arr)
     {

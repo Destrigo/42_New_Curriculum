@@ -42,13 +42,9 @@ run:
 # Code quality
 # ==============================
 
-.PHONY: format
-format:
-	uv run ruff format .
-
-.PHONY: lint
 lint:
-	uv run ruff check .
+	uv run flake8 --exclude .venv
+	uv run mypy .
 
 # ==============================
 # Cleanup
