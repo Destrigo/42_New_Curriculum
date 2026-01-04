@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 12:36:41 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 19:54:54 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ int parse_datastruct(t_struct_input *data, char **argv)
 
 	i = -1;
 	data->number_of_coders = atoi(argv[1]);
+	data->start_time = timestamp();
 	data->usb_array = malloc(sizeof(pthread_mutex_t) * data->number_of_coders);
 	if (!data->usb_array)
 		return (-1);

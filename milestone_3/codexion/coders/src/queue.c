@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 21:44:04 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/04 19:44:44 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 19:51:58 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void enqueue_coder(t_struct_input *data, t_struct_coder *coder)
     if (!node)
         return ;
     node->coder = coder;
-    pthread_mutex_lock(&data->monitor_mutex);
+    // pthread_mutex_lock(&data->monitor_mutex);
     node->deadline = coder->last_action_time + data->time_to_burnout;
     node->next = NULL;
     if (!data->scheduler_queue) 
@@ -54,7 +54,7 @@ void enqueue_coder(t_struct_input *data, t_struct_coder *coder)
             }
         }
     }
-    pthread_mutex_unlock(&data->monitor_mutex);
+    // pthread_mutex_unlock(&data->monitor_mutex);
 }
 
 void dequeue_coder(t_struct_input *data, t_struct_coder *coder)

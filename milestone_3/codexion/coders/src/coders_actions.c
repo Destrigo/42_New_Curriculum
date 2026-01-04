@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/04 19:38:32 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 19:55:22 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ void compile(t_struct_input *data, int id, long timeshot, int sleepms)
 {
     safe_printf(data, id, timeshot, "is compiling\n");
     usleep(sleepms * 1000);
-    data->arr[id]->last_action_time = now_ms(data->arr[id]); //update time to die
+    data->arr[id - 1]->last_action_time = get_timestamp(data); //update time to die
 }
 
 void debug(t_struct_input *data, int id, long timeshot, int sleepms)

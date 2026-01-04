@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2025/12/05 12:20:18 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/04 20:03:23 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ typedef struct s_struct_input
 	long	number_of_compiles_required;
 	long	dongle_cooldown;
 	long	scheduler; //bool 1/2 based on input
+	long	start_time;
 	struct s_struct_coder	**arr;
 	pthread_mutex_t print_mutex;
 	pthread_mutex_t *usb_array;      // one per USB
@@ -85,5 +86,6 @@ void enqueue_coder(t_struct_input *data, t_struct_coder *coder);
 t_struct_input *parse_input(char **argv);
 int parse_datastruct(t_struct_input *data, char **argv);
 int parse_coders(t_struct_input *data);
+long get_timestamp(t_struct_input *data);
 
 #endif
