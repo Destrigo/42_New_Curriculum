@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 13:18:40 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/04 22:05:23 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/06 13:38:02 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ void *monitor_routine(void *arg)
     				data->flag_stop = 1;
     				
     				pthread_mutex_lock(&data->print_mutex);
-    				printf("%ld %d is burnout\n", get_timestamp(data), i + 1);
+    				printf("%ld %d burned out\n", get_timestamp(data), i + 1);
     				fflush(stdout);
     				pthread_mutex_unlock(&data->print_mutex);
     				
