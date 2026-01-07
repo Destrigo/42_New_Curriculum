@@ -6,7 +6,7 @@
 #    By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/05 12:06:34 by mtaranti          #+#    #+#              #
-#    Updated: 2026/01/06 13:30:01 by mtaranti         ###   ########.fr        #
+#    Updated: 2026/01/07 21:49:11 by mtaranti         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ SRC = 	src/main.c				\
 		src/queue.c				\
 		src/time_stuff.c		\
 		src/helpers.c			\
+		src/routine.c			\
 		src/coders_actions.c
 OBJ = $(SRC:.c=.o)
 
@@ -61,7 +62,7 @@ test6: re
 test7: re
 	./$(NAME) 20 1000 150 100 100 5 50 edf
 
-test 8: re
+test8: re
 	./$(NAME) 8 500 400 100 100 4 50 edf
 
 test9: re

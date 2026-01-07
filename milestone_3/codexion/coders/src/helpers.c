@@ -12,10 +12,10 @@
 
 #include "coders.h"
 
-int is_fifo_or_edf(char *str)
+int	is_fifo_or_edf(char *str)
 {
-	const char *fifo = "fifo";
-	const char *edf = "edf";
+	const char	*fifo = "fifo";
+	const char	*edf = "edf";
 	int			i;
 
 	i = 0;
@@ -37,7 +37,7 @@ int is_fifo_or_edf(char *str)
 
 int	is_number(char *str)
 {
-	while(*str)
+	while (*str)
 	{
 		if (*str < 48 || *str > 57)
 			return (-1);
@@ -69,33 +69,36 @@ int	input_validation(int arg, char **argv)
 	return (0);
 }
 
-void free_all(t_struct_input *data)
+void	free_all_one(t_struct_input *data)
 {
-int i;
-    t_queue_node *tmp;
-    t_queue_node *next;
+	int				i;
+	t_queue_node	*tmp;
+	t_queue_node	*next;
 
-    tmp = data->scheduler_queue;
-    while (tmp)
-    {
-        next = tmp->next;
-        free(tmp);
-        tmp = next;
-    }
+	tmp = data->scheduler_queue;
+	while (tmp)
+	{
+		next = tmp->next;
+		free(tmp);
+		tmp = next;
+	}
+	if (data->arr)
+	{
+		i = -1;
+		while (++i < data->number_of_coders)
+		{
+			if (data->arr[i])
+				free(data->arr[i]);
+		}
+		free(data->arr);
+	}
+}
 
-    if (data->arr)
-    {
-        i = -1;
-        while (++i < data->number_of_coders)
-        {
-            if (data->arr[i])
-                free(data->arr[i]);
-        }
-        free(data->arr);
-    }
-    if (data->usb_array)
-        free(data->usb_array);
-    if (data->usb_last_free_time)
-        free(data->usb_last_free_time);
-    free(data);
+void	free_all_two(t_struct_input *data)
+{
+	if (data->usb_array)
+		free(data->usb_array);
+	if (data->usb_last_free_time)
+		free(data->usb_last_free_time);
+	free(data);
 }

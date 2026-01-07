@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/06 13:48:11 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/07 21:01:34 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,22 +37,23 @@ typedef struct s_struct_input
 	long					start_time;
 	struct s_struct_coder	**arr;
 	pthread_mutex_t			print_mutex;
-	pthread_mutex_t 		*usb_array;      // one per USB
+	pthread_mutex_t			*usb_array; // one per USB
 	long					*usb_last_free_time;
-	pthread_mutex_t			monitor_mutex;   // protects the queue
-	pthread_cond_t 			monitor_cond;    // signals waiting coders
+	pthread_mutex_t			monitor_mutex; // protects the queue
+	pthread_cond_t			monitor_cond; // signals waiting coders
 	struct s_queue_node		*scheduler_queue;
 
 }	t_struct_input;
 
-typedef struct	s_queue_node {
-    struct s_struct_coder	*coder;
-    long					deadline;
-    struct s_queue_node		*next;
+typedef struct s_queue_node
+{
+	struct s_struct_coder	*coder;
+	long					deadline;
+	struct s_queue_node		*next;
 
-} t_queue_node;
+}	t_queue_node;
 
-typedef struct	s_struct_coder
+typedef struct s_struct_coder
 {
 	t_struct_input	*data_input;
 	long			id;
@@ -61,7 +62,7 @@ typedef struct	s_struct_coder
 	int				flag_burnout; //0 ok, 1 is burnout
 	long			flag_finished; //0 std, 1 is finished
 	pthread_t		thread;
-	
+
 }	t_struct_coder;
 
 long			timestamp(void);
@@ -69,11 +70,15 @@ long			now_ms(t_struct_coder *coder);
 int				is_fifo_or_edf(char *str);
 int				is_number(char *str);
 int				input_validation(int arg, char **argv);
-void			free_all(t_struct_input *data);
-void			compile(t_struct_input *data, int id, long timeshot, int sleepms);
+void			free_all_one(t_struct_input *data);
+void			free_all_two(t_struct_input *data);
+void			compile(t_struct_input *data,
+					int id, long timeshot, int sleepms);
 void			debug(t_struct_input *data, int id, long timeshot, int sleepms);
-void			refactor(t_struct_input *data, int id, long timeshot, int sleepms);
-void			safe_printf(t_struct_input *data, int id, long timeshot, char *str);
+void			refactor(t_struct_input *data,
+					int id, long timeshot, int sleepms);
+void			safe_printf(t_struct_input *data,
+					int id, long timeshot, char *str);
 int				main(int arg, char **argv);
 void			*routine(void *arg);
 void			*monitor_routine(void *arg);
