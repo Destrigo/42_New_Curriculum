@@ -3,10 +3,8 @@ from models.zone import Node
 
 class Display:
     """Display class with colored terminal output based on zone colors."""
-    # ANSI color codes
     RESET = "\033[0m"
     BOLD = "\033[1m"
-    # Color name to ANSI code mapping
     COLOR_MAP = {
         "green": "\033[32m",
         "red": "\033[31m",
@@ -43,10 +41,10 @@ class Display:
         """
         self.nodes = nodes
         self.drones = drones
-        self.previous_zone: dict[int, object] = {d.id: d.current_zone
-                                                 for d in drones}
+        self.previous_zone: dict[int, Node] = {d.id: d.current_zone
+                                               for d in drones}
         # Build a quick lookup map: zone_name -> zone_node
-        self.zone_map: dict[str, object] = {node.name: node for node in nodes}
+        self.zone_map: dict[str, Node] = {node.name: node for node in nodes}
 
     def _get_zone_color(self, zone_name: str) -> str:
         """
@@ -93,12 +91,14 @@ class Display:
                     # Color the connection in orange to show in-flight
                     movement = (f"{self.INFLIGHT_COLOR}D{d.id}{self.RESET}"
                                 f"-"
-                                f"{self.INFLIGHT_COLOR}{connection}{self.RESET}")
+                                f"{self.INFLIGHT_COLOR}{connection}"
+                                f"{self.RESET}")
                 else:
                     connection = f"{prev.name}-?"
                     movement = (f"{self.INFLIGHT_COLOR}D{d.id}{self.RESET}"
                                 f"-"
-                                f"{self.INFLIGHT_COLOR}{connection}{self.RESET}")
+                                f"{self.INFLIGHT_COLOR}{connection}"
+                                f"{self.RESET}")
                 movements.append(movement)
                 self.previous_zone[d.id] = curr
                 continue

@@ -44,8 +44,6 @@ make clean
 # Run code quality checks
 make lint
 
-# Run strict type checking (recommended)
-make lint-strict
 ```
 
 ### Map File Format
@@ -159,8 +157,6 @@ fly-in/
 
 ### Graph Theory and Pathfinding
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive coverage of graph algorithms
-- [Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Shortest path algorithm foundation
-- [A* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) - Heuristic pathfinding
 - [Graph Theory Tutorial](https://www.geeksforgeeks.org/graph-data-structure-and-algorithms/) - Practical implementation guide
 
 ### Python Best Practices
@@ -176,22 +172,17 @@ fly-in/
 
 ### AI Tool Usage
 
-AI tools (Claude, ChatGPT, GitHub Copilot) were used strategically in this project for:
+AI tools (Claude, ChatGPT) were used strategically in this project for:
 
 **Code Generation Assistance:**
-- Initial parser structure and regex pattern suggestions
-- Boilerplate code for class definitions and type hints
 - Terminal color code reference and ANSI escape sequences
 
 **Debugging Support:**
 - Type hint error resolution with mypy
-- Logic error identification in pathfinding algorithm
-- Suggestions for handling edge cases (dead ends, loops, capacity constraints)
 
 **Documentation:**
 - README structure and formatting
 - Docstring templates following PEP 257
-- Algorithm complexity analysis verification
 
 **Not Used For:**
 - Core pathfinding algorithm logic (designed independently)

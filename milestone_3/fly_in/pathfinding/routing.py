@@ -32,7 +32,8 @@ class Pathfinder:
                     all_paths.append(path.copy())
                 else:
                     # explore all neighbors
-                    for neighbor_name in current.connections:
+                    for neighbor_tuple in current.connections:
+                        neighbor_name, _ = neighbor_tuple
                         neighbor = nodes_dict[neighbor_name]
                         if neighbor not in visited:
                             if neighbor.zone != "blocked":
@@ -52,7 +53,8 @@ class Pathfinder:
         nodes_dict = {node.name: node for node in nodes}
         self.paths = generate_all_paths(start, end, nodes_dict)
         self.paths = [path for path in self.paths if path and path[-1] == end]
-
+        if all(self.paths) is None:
+            raise Exception("No path from start to end")
         # remove the first for since its the starting point
         for path in self.paths:
             path.pop(0)
@@ -64,7 +66,6 @@ class Pathfinder:
                     path.insert(i, path[i])
                     i += 1
                 i += 1
-
         costed_paths = [(path_cost(p), p) for p in self.paths]
         chosen_paths: list = []
         # sorts the paths by cost then assignes then updates

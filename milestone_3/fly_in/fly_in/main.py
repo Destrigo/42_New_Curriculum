@@ -9,9 +9,12 @@ class Solution:
         try:
             with open("map.txt") as f:
                 parsed_data = Parser(f)
-        except FileNotFoundError:
-            raise FileNotFoundError("File not found")
-        Pathfinder(parsed_data.drones, parsed_data.nodes)
+        except Exception as f:
+            raise Exception(f)
+        try:
+            Pathfinder(parsed_data.drones, parsed_data.nodes)
+        except Exception as f:
+            raise Exception(f)
         Turns(parsed_data.drones, parsed_data.nodes)
 
 
