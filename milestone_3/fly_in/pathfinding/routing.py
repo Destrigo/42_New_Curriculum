@@ -14,6 +14,7 @@ class Pathfinder:
         """logic and assigning paths to drones"""
         start = self.nodes[0]
         end = self.nodes[len(self.nodes) - 1]
+        wait_node = Node("w", "w", -9999999, -9999999)
 
         def generate_all_paths(start_node: Node,
                                end_node: Node,
@@ -66,6 +67,7 @@ class Pathfinder:
                     path.insert(i, path[i])
                     i += 1
                 i += 1
+
         costed_paths = [(path_cost(p), p) for p in self.paths]
         chosen_paths: list = []
         # sorts the paths by cost then assignes then updates
@@ -75,19 +77,61 @@ class Pathfinder:
 
             adjusted_path = list(cheapest_path)
             t = 0
+            # NODE CAPACITY CHECK
             while t < len(adjusted_path):
-                node = Node("w", "w", -9999999, -9999999)
-                # count chosen drones are in this node at time t
                 occupied = 0
                 for chosen in chosen_paths:
                     if t < len(chosen) and chosen[t] == adjusted_path[t]:
                         occupied += 1
                 capacity = getattr(adjusted_path[t], "max_drones", 1)
                 if occupied >= int(capacity):
-                    adjusted_path.insert(t, node)
+                    adjusted_path.insert(t, wait_node)
                     t += 1
                 else:
                     t += 1
+            # CONNECTION CAPACITY CHECK
+            t = 1
+            while t < len(adjusted_path):
+                # Skip wait nodes
+                if adjusted_path[t].x == -9999999:
+                    t += 1
+                    continue
+                if t > 0 and adjusted_path[t-1].x == -9999999:
+                    t += 1
+                    continue
+                from_node = adjusted_path[t-1]
+                to_node = adjusted_path[t]
+                # Check if this is the start of a restricted
+                is_restricted_start = (to_node.zone == "restricted" and
+                                       t+1 < len(adjusted_path) and
+                                       adjusted_path[t+1] == to_node)
+                # For restricted zones, check capacity for BOTH turns
+                turns_to_check = [t]
+                if is_restricted_start:
+                    turns_to_check.append(t+1)
+
+                for check_turn in turns_to_check:
+                    connection_occupied = 0
+                    for chosen in chosen_paths:
+                        if (check_turn-1 < len(chosen) and
+                            check_turn < len(chosen) and
+                            chosen[check_turn-1] == from_node and
+                           chosen[check_turn] == to_node):
+                            connection_occupied += 1
+
+                    # Get connection capacity
+                    connection_capacity = 1
+                    for conn_tuple in from_node.connections:
+                        neighbor_name, capacity = conn_tuple
+                        if neighbor_name == to_node.name:
+                            connection_capacity = capacity
+                            break
+                    if connection_occupied >= connection_capacity:
+                        adjusted_path.insert(t-1, wait_node)
+                        break
+                if check_turn == t:  # Only advance if we didn't insert a wait node
+                    t += 1
+
             tmp_dr.path = adjusted_path
             chosen_paths.append(adjusted_path)
             costed_paths = [(path_cost(p), p) for _, p in costed_paths]
