@@ -56,7 +56,7 @@ class Pathfinder:
         self.paths = [path for path in self.paths if path and path[-1] == end]
         if all(self.paths) is None:
             raise Exception("No path from start to end")
-        # remove the first for since its the starting point
+        # remove the first node since its the starting point
         for path in self.paths:
             path.pop(0)
         # duplicate restricted for having 2 cost
@@ -93,44 +93,29 @@ class Pathfinder:
             t = 1
             while t < len(adjusted_path):
                 # Skip wait nodes
-                if adjusted_path[t].x == -9999999:
+                while adjusted_path[t].x == -9999999:
                     t += 1
-                    continue
-                if t > 0 and adjusted_path[t-1].x == -9999999:
-                    t += 1
-                    continue
                 from_node = adjusted_path[t-1]
                 to_node = adjusted_path[t]
-                # Check if this is the start of a restricted
-                is_restricted_start = (to_node.zone == "restricted" and
-                                       t+1 < len(adjusted_path) and
-                                       adjusted_path[t+1] == to_node)
-                # For restricted zones, check capacity for BOTH turns
-                turns_to_check = [t]
-                if is_restricted_start:
-                    turns_to_check.append(t+1)
 
-                for check_turn in turns_to_check:
-                    connection_occupied = 0
-                    for chosen in chosen_paths:
-                        if (check_turn-1 < len(chosen) and
-                            check_turn < len(chosen) and
-                            chosen[check_turn-1] == from_node and
-                           chosen[check_turn] == to_node):
-                            connection_occupied += 1
-
-                    # Get connection capacity
-                    connection_capacity = 1
-                    for conn_tuple in from_node.connections:
-                        neighbor_name, capacity = conn_tuple
-                        if neighbor_name == to_node.name:
-                            connection_capacity = capacity
-                            break
-                    if connection_occupied >= connection_capacity:
-                        adjusted_path.insert(t-1, wait_node)
+                connection_occupied = 0
+                for chosen in chosen_paths:
+                    if (t-1 < len(chosen) and
+                        t < len(chosen) and
+                        chosen[t-1] == from_node and
+                       chosen[t] == to_node):
+                        connection_occupied += 1
+                # Get connection capacity
+                connection_capacity = 1
+                for conn_tuple in from_node.connections:
+                    neighbor_name, capacity = conn_tuple
+                    if neighbor_name == to_node.name:
+                        connection_capacity = capacity
                         break
-                if check_turn == t:  # Only advance if we didn't insert a wait node
-                    t += 1
+                if connection_occupied >= connection_capacity:
+                    adjusted_path.insert(t-1, wait_node)
+                    break
+                t += 1
 
             tmp_dr.path = adjusted_path
             chosen_paths.append(adjusted_path)

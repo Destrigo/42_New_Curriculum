@@ -87,12 +87,12 @@ class Parser:
         node = Node(hub, name, x, y)
         for data in metadata:
             if data.startswith("color"):
-                setattr(node, data[5:], node.color)
+                setattr(node, 'color', data[6:])
             elif data.startswith("zone"):
-                setattr(node, data[4:], node.zone)
+                setattr(node, 'zone', data[5:])
             elif data.startswith("max_drones"):
                 try:
-                    setattr(node, data[11:], node.max_drone)
+                    setattr(node, 'max_drone', data[11:])
                 except ValueError:
                     raise Exception("wrong number input parcing max_drones")
             else:
@@ -112,7 +112,7 @@ class Parser:
         elif len(tmp) == 2:
             metadata = tmp[1]
             if metadata.startswith("max_link_capacity="):
-                link_capacity = int(metadata[18])
+                link_capacity = int(metadata[18:])
                 if link_capacity < 1:
                     raise Exception("Link Capacity can't be < 1")
             else:

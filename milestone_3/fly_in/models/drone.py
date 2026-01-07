@@ -11,7 +11,7 @@ class Drone:
         self.path: list[Node] = []
         self.restricted_movement_turns_buffer = 0
 
-    def action(self, drones: list) -> None:
+    def action(self) -> None:
         """do something"""
         if self.is_arrived is True:
             return
@@ -26,12 +26,12 @@ class Drone:
             if self.path[0].zone == "restricted":
                 if self.restricted_movement_turns_buffer == 0:
                     self.restricted_movement_turns_buffer = 1
-                    self.path.pop(0)
+                    self.current_zone = self.path.pop(0)
                 else:
                     self.current_zone = self.path.pop(0)
             else:
                 self.current_zone = self.path.pop(0)
-            if self.restricted_movement_turns_buffer == 0:
-                if self.current_zone.map_definition == "end_hub":
-                    self.is_arrived = True
+            if (self.restricted_movement_turns_buffer == 0 and
+               self.current_zone.map_definition == "end_hub"):
+                self.is_arrived = True
             return
