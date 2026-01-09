@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   queue.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 21:44:04 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/07 21:31:37 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/09 20:53:40 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,11 @@ static void	helper_four(t_struct_input *data,
 		node->next = data->scheduler_queue;
 		data->scheduler_queue = node;
 	}
-	node->next = tmp;
-	prev->next = node;
+	else
+	{
+		node->next = tmp;
+		prev->next = node;
+	}
 }
 
 void	enqueue_coder(t_struct_input *data, t_struct_coder *coder)
@@ -93,8 +96,8 @@ int	can_take_dongles(t_struct_coder *coder)
 	left = coder->id - 1;
 	right = coder->id % data->number_of_coders;
 	now = timestamp();
-	if (left == right)
-		return (0);
+	if (data->number_of_coders == 1)
+    	return (0);
 	if (!data->scheduler_queue || data->scheduler_queue->coder != coder)
 		return (0);
 	if (now - data->usb_last_free_time[left] < data->dongle_cooldown)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/07 21:52:18 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/09 20:52:17 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,9 +67,7 @@ static void	helper_five(t_struct_input *data, int i, int flag)
 	{
 		data->flag_stop = 1;
 		pthread_mutex_lock(&data->print_mutex);
-		if (flag == 1)
-			printf("%ld finished all compilations\n", get_timestamp(data));
-		else
+		if (flag != 1)
 			printf("%ld %d burned out\n", get_timestamp(data), i + 1);
 		fflush(stdout);
 		pthread_mutex_unlock(&data->print_mutex);
@@ -95,7 +93,7 @@ void	*monitor_routine(void *arg)
 		{
 			if (data->arr[i]->flag_finished == 1)
 				counter++;
-			time_since_last_compile -= data->arr[i]->last_action_time;
+			time_since_last_compile = timestamp() - data->arr[i]->last_action_time;
 			if (time_since_last_compile >= data->time_to_burnout)
 				return (helper_five((t_struct_input *)data, i, 0), NULL);
 		}

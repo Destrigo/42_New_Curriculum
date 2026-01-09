@@ -3,17 +3,17 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+         #
+#    By: marco <marco@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/05 12:06:34 by mtaranti          #+#    #+#              #
-#    Updated: 2026/01/07 21:49:11 by mtaranti         ###   ########.fr        #
+#    Updated: 2026/01/09 20:52:54 by marco            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = codexion
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -pthread
 RM = rm -f
 SRC = 	src/main.c				\
 		src/parsing.c			\
