@@ -4,7 +4,8 @@
 
 PYTHON := uv run python
 SRC := src
-INPUT := data/input/function_calling_tests.json
+INPUT_PROMPTS := data/input/function_calling_tests.json
+INPUT_FUNCS := data/input/function_definition.json
 OUTPUT := data/output/results.json
 
 # ==============================
@@ -35,7 +36,8 @@ install:
 .PHONY: run
 run:
 	$(PYTHON) -m $(SRC) \
-		--input $(INPUT) \
+		--input $(INPUT_PROMPTS) \
+		--input $(INPUT_FUNCS) \
 		--output $(OUTPUT)
 
 # ==============================
