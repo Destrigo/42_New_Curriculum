@@ -1,5 +1,5 @@
-from typing import TextIO
 from .models import Function
+import json
 
 
 class Parser:
@@ -19,39 +19,19 @@ class Parser:
         func_list: list[Function] = []
         try:
             with open(file_input_func, "r") as file_func:
-                # line = file_func.readline().strip()
-                # if line != "[":
-                #     raise Exception("File doesn't start with [")
-
-                # line = file_func.readline().strip()
-                # if line != "{":
-                #     raise Exception("function doesn't start with {")
-
-                # line = file_func.readline().strip()
-                # if line[:8] != '"fn_name": ':
-                #     raise Exception("Bad start of name sintax")
-                # try:
-                #     name = str(line[8:])
-                # except Exception:
-                #     raise Exception("Bad name string")
-
-                # line = file_func.readline().strip()
-                # if line[:15] != '"description": ':
-                #     raise Exception("Bad start of description sintax")
-                # try:
-                #     description = str(line[15:])
-                # except Exception:
-                #     raise Exception("Bad description string")
-
-                # line = file_func.readline().strip()
-                # if line[:14] != '"parameters": ':
-                #     raise Exception("Bad start of parameters sintax")
-                # try:
-                #     parameters = eval(line[14:])
-                # except Exception:
-                #     raise Exception("Bad parameters dict")
-
-                # func_list.append(Function(name, description, parameters))
+                d = json.load(file_func)
+                for func in d:
+                    try:
+                        func_list.append(
+                            Function(
+                                name=str(func["fn_name"]),
+                                args=list(func["args_names"]),
+                                types=dict(func["args_types"]),
+                                return_type=str(func["return_type"])
+                            )
+                        )
+                    except Exception:
+                        raise Exception("Bad function sintax")
         except FileNotFoundError:
             raise Exception("File functions not found")
         return func_list
@@ -62,50 +42,37 @@ class Parser:
         prompt_list: list[str] = []
         try:
             with open(file_input_prompt, "r") as file_prompt:
-                line = file_prompt.readline().strip()
-                if line != "[":
-                    raise Exception("File doesn't start with [")
-
-                line = file_prompt.readline().strip()
-                if line != "{":
-                    raise Exception("prompt doesn't start with {")
-
-                line = file_prompt.readline().strip()
-                if line[:10] != '"prompt": ':
-                    raise Exception("Bad start of prompt sintax")
-                try:
-                    prompt_list.append(str(line[10:]))
-                except Exception:
-                    raise Exception("Bad prompt string")
-
-                line = file_prompt.readline().strip()
-                while (line == "},"):
-                    line = file_prompt.readline().strip()
-                    if line != "{":
-                        raise Exception("prompt doesn't start with {")
-
-                    line = file_prompt.readline().strip()
-                    if line[:10] != '"prompt": ':
-                        raise Exception("Bad start of prompt sintax")
-
-                    try:
-                        prompt_list.append(str(line[10:]))
-                    except Exception:
-                        raise Exception("Bad prompt string")
-                    line = file_prompt.readline().strip()
-
-                if line != "}":
-                    raise Exception("Bad end of last prompt sintax")
-                line = file_prompt.readline().strip()
-                if line != "]":
-                    raise Exception("File doesn't end with ]")
+                d = json.load(file_prompt)
+                for prompt in d:
+                    prompt_list.append(str(prompt))
         except FileNotFoundError:
-            raise Exception("File prompts not found")
-        return prompt_list
+            raise FileNotFoundError("File prompts not found")
 
-    # def _next_line(self, f: TextIO) -> str:
-    #     """Return next non-empty, non-comment line"""
-    #     line = f.readline()
-    #     while line and (line.strip() == "" or line.lstrip().startswith("#")):
-    #         line = f.readline()
-    #     return line.strip()
+        for prompt in prompt_list:
+            if not isinstance(prompt, str):
+                raise Exception("Bad prompt sintax")
+            if prompt.strip() == "":
+                raise Exception("Empty prompt found")
+            if prompt.count('"') % 2 != 0:
+                raise Exception("Unbalanced quotes in prompt")
+            if len(prompt) > 1000:
+                raise Exception("Prompt too long")
+            if prompt.count("{") != prompt.count("}"):
+                raise Exception("Unbalanced braces in prompt")
+            if prompt.count("(") != prompt.count(")"):
+                raise Exception("Unbalanced parentheses in prompt")
+            if prompt.count("[") != prompt.count("]"):
+                raise Exception("Unbalanced brackets in prompt")
+            if "\n" in prompt:
+                raise Exception("Newline character in prompt")
+            if "\t" in prompt:
+                raise Exception("Tab character in prompt")
+            if prompt.startswith(" ") or prompt.endswith(" "):
+                raise Exception("Prompt starts or ends with whitespace")
+            if "  " in prompt:
+                raise Exception("Prompt contains consecutive spaces")
+            if any(ord(c) < 32 or ord(c) > 126 for c in prompt):
+                raise Exception("Prompt contains non-ASCII characters")
+            if prompt in prompt_list[:prompt_list.index(prompt)]:
+                raise Exception("Duplicate prompt found")
+        return prompt_list

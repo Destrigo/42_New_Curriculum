@@ -28,11 +28,17 @@ class Function:
     """Function representation"""
     def __init__(self,
                  name: str,
-                 description: str,
-                 parameters: dict) -> None:
+                 args: list,
+                 types: dict,
+                 return_type: str) -> None:
         self.name = name
-        self.description = description
-        self.parameters = parameters
+        self.tkname = []  # tokenized name, to be filled later
+        self.args = args  # list of argument names
+        self.tkargs = []  # list of argument names
+        self.types = types  # list of types corresponding to argument names
+        self.tktypes = {}  # list of types corresponding to argument names
+        self.return_type = return_type
+        self.tkreturn_type = []  # tokenized parameters, to be filled later
 
 
 class FSM:

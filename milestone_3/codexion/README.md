@@ -389,11 +389,6 @@ free_all(data);
 - `man gettimeofday` — High-resolution time measurement
 - `man usleep` — Microsecond sleep precision
 
-**Concurrency Concepts:**
-- [Dining Philosophers Problem](https://en.wikipedia.org/wiki/Dining_philosophers_problem) — Classic synchronization problem
-- [Coffman Conditions](https://en.wikipedia.org/wiki/Deadlock#Coffman_conditions) — Four necessary conditions for deadlock
-- [Priority Scheduling](https://en.wikipedia.org/wiki/Scheduling_(computing)) — CPU scheduling algorithms
-
 **Scheduling Algorithms:**
 - **FIFO (First In, First Out)** — Simple fair queuing
 - **EDF (Earliest Deadline First)** — Real-time scheduling based on deadlines
@@ -408,11 +403,8 @@ free_all(data);
 
 **AI tools (ChatGPT) were used for:**
 - Understanding POSIX threading concepts and best practices
-- Clarifying condition variable usage patterns (wait/signal/broadcast)
-- Researching EDF scheduling algorithm implementation
 - Generating initial README structure and formatting
 - Reviewing concurrency terminology and definitions
-- Explaining difference between `pthread_cond_signal()` and `pthread_cond_broadcast()`
 
 **AI was NOT used for:**
 - Writing the core synchronization logic

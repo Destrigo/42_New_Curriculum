@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
+/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/09 20:52:17 by marco            ###   ########.fr       */
+/*   Updated: 2026/01/11 16:24:04 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,21 +80,21 @@ void	*monitor_routine(void *arg)
 	const t_struct_input	*data = (t_struct_input *)arg;
 	int						i;
 	int						counter;
-	long					time_since_last_compile;
+	long					time;
 
 	while (1)
 	{
 		counter = 0;
 		i = -1;
-		time_since_last_compile = timestamp();
+		time = timestamp();
 		if (data->flag_stop == 1)
 			return (NULL);
 		while (++i < data->number_of_coders)
 		{
 			if (data->arr[i]->flag_finished == 1)
 				counter++;
-			time_since_last_compile = timestamp() - data->arr[i]->last_action_time;
-			if (time_since_last_compile >= data->time_to_burnout)
+			time = timestamp() - data->arr[i]->last_action_time;
+			if (time >= data->time_to_burnout)
 				return (helper_five((t_struct_input *)data, i, 0), NULL);
 		}
 		if (counter == data->number_of_coders)
