@@ -119,4 +119,8 @@ class Pathfinder:
 
             tmp_dr.path = adjusted_path
             chosen_paths.append(adjusted_path)
-            costed_paths = [(path_cost(p), p) for _, p in costed_paths]
+            new_cost = path_cost(adjusted_path)
+            for i, (cost, path) in enumerate(costed_paths):
+                if path is cheapest_path:
+                    costed_paths[i] = (new_cost, adjusted_path)
+                    break
