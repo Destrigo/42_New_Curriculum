@@ -81,6 +81,7 @@ class Decoder:
                 # Aggiorna input e output
                 input_ids.append(best_token_id)
                 output_token_ids.append(best_token_id)
+                print(f"Selected token ID: {best_token_id} ('{self.get_token_string(best_token_id)}')")
             if iter_count >= max_iter:
                 raise Exception(f"Max iterations reached for prompt: {prompt}")
             # Decodifica direttamente il JSON generato dal modello
