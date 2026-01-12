@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helpers.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 15:45:26 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/04 21:30:44 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/12 23:12:54 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,16 +71,13 @@ int	input_validation(int arg, char **argv)
 
 void	free_all_one(t_struct_input *data)
 {
-	int				i;
-	t_queue_node	*tmp;
-	t_queue_node	*next;
+	int	i;
 
-	tmp = data->scheduler_queue;
-	while (tmp)
+	if (data->scheduler_queue)
 	{
-		next = tmp->next;
-		free(tmp);
-		tmp = next;
+		if (data->scheduler_queue->entries)
+			free(data->scheduler_queue->entries);
+		free(data->scheduler_queue);
 	}
 	if (data->arr)
 	{

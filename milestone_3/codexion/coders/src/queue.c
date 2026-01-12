@@ -3,85 +3,125 @@
 /*                                                        :::      ::::::::   */
 /*   queue.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 21:44:04 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/11 16:24:42 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/12 23:18:14 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "coders.h"
 
-static void	helper_four(t_struct_input *data,
-	t_queue_node *node, t_queue_node *prev, t_queue_node *tmp)
+static void	swap_entries(t_queue_entry *a, t_queue_entry *b)
+{
+	t_queue_entry	tmp;
+
+	tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+
+/* Heap helper: get priority for comparison */
+static long	get_priority(t_struct_input *data, t_queue_entry *entry)
 {
 	if (data->scheduler == 1)
-	{
-		tmp = data->scheduler_queue;
-		while (tmp->next)
-			tmp = tmp->next;
-		tmp->next = node;
-		return ;
-	}
-	prev = NULL;
-	tmp = data->scheduler_queue;
-	while (tmp && tmp->deadline <= node->deadline)
-	{
-		prev = tmp;
-		tmp = tmp->next;
-	}
-	if (!prev)
-	{
-		node->next = data->scheduler_queue;
-		data->scheduler_queue = node;
-	}
+		return (entry->enqueue_time);
 	else
+		return (entry->deadline);
+}
+
+/* Heap helper: compare entries (returns 1 if a has higher priority) */
+static int	has_higher_priority(t_struct_input *data,
+	t_queue_entry *a, t_queue_entry *b)
+{
+	long	prio_a;
+	long	prio_b;
+
+	prio_a = get_priority(data, a);
+	prio_b = get_priority(data, b);
+	return (prio_a < prio_b);
+}
+
+static void	heap_up(t_struct_input *data, int idx)
+{
+	int	parent;
+
+	while (idx > 0)
 	{
-		node->next = tmp;
-		prev->next = node;
+		parent = (idx - 1) / 2;
+		if (!has_higher_priority(data,
+			&data->scheduler_queue->entries[idx],
+			&data->scheduler_queue->entries[parent]))
+			break ;
+		swap_entries(&data->scheduler_queue->entries[idx],
+			&data->scheduler_queue->entries[parent]);
+		idx = parent;
+	}
+}
+
+static void	heap_down(t_struct_input *data, int idx)
+{
+	int	left;
+	int	right;
+	int	smallest;
+
+	while (1)
+	{
+		left = 2 * idx + 1;
+		right = 2 * idx + 2;
+		smallest = idx;
+		if (left < data->scheduler_queue->size
+			&& has_higher_priority(data,
+				&data->scheduler_queue->entries[left],
+				&data->scheduler_queue->entries[smallest]))
+			smallest = left;
+		if (right < data->scheduler_queue->size
+			&& has_higher_priority(data,
+				&data->scheduler_queue->entries[right],
+				&data->scheduler_queue->entries[smallest]))
+			smallest = right;
+		if (smallest == idx)
+			break ;
+		swap_entries(&data->scheduler_queue->entries[idx],
+			&data->scheduler_queue->entries[smallest]);
+		idx = smallest;
 	}
 }
 
 void	enqueue_coder(t_struct_input *data, t_struct_coder *coder)
 {
-	t_queue_node	*node;
-	t_queue_node	*prev;
-	t_queue_node	*tmp;
+	int	idx;
 
-	node = malloc(sizeof(t_queue_node));
-	if (!node)
+	if (data->scheduler_queue->size >= data->scheduler_queue->capacity)
 		return ;
-	tmp = NULL;
-	prev = NULL;
-	node->coder = coder;
-	node->deadline = coder->last_action_time + data->time_to_burnout;
-	node->next = NULL;
-	if (!data->scheduler_queue)
-		data->scheduler_queue = node;
-	else
-		helper_four(data, node, prev, tmp);
+	idx = data->scheduler_queue->size;
+	data->scheduler_queue->entries[idx].coder = coder;
+	data->scheduler_queue->entries[idx].deadline = coder->last_action_time
+		+ data->time_to_burnout;
+	data->scheduler_queue->entries[idx].enqueue_time = timestamp();
+	data->scheduler_queue->size++;
+	heap_up(data, idx);
 }
 
 void	dequeue_coder(t_struct_input *data, t_struct_coder *coder)
 {
-	t_queue_node	*prev;
-	t_queue_node	*tmp;
+	int	i;
 
-	prev = NULL;
-	tmp = data->scheduler_queue;
-	while (tmp)
+	i = 0;
+	while (i < data->scheduler_queue->size)
 	{
-		if (tmp->coder == coder)
+		if (data->scheduler_queue->entries[i].coder == coder)
 		{
-			if (prev)
-				prev->next = tmp->next;
-			else
-				data->scheduler_queue = tmp->next;
-			free(tmp);
-			break ;
+			data->scheduler_queue->size--;
+			if (i < data->scheduler_queue->size)
+			{
+				data->scheduler_queue->entries[i] =
+					data->scheduler_queue->entries[data->scheduler_queue->size];
+				heap_down(data, i);
+			}
+			return ;
 		}
-		prev = tmp;
-		tmp = tmp->next;
+		i++;
 	}
 }
 
@@ -98,7 +138,8 @@ int	can_take_dongles(t_struct_coder *coder)
 	now = timestamp();
 	if (data->number_of_coders == 1)
 		return (0);
-	if (!data->scheduler_queue || data->scheduler_queue->coder != coder)
+	if (data->scheduler_queue->size == 0
+		|| data->scheduler_queue->entries[0].coder != coder)
 		return (0);
 	if (now - data->usb_last_free_time[left] < data->dongle_cooldown)
 		return (0);

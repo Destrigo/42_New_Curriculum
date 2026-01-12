@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   coders.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/07 21:01:34 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/12 23:16:59 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,40 +18,44 @@
 # include <sys/time.h>
 # include <pthread.h>
 # include <stdio.h>
-# include <pthread.h>
 
 struct	s_struct_coder;
-struct	s_queue_node;
+struct	s_priority_queue;
+
+typedef struct s_queue_entry
+{
+	struct s_struct_coder	*coder;
+	long					deadline;
+	long					enqueue_time;
+}	t_queue_entry;
+
+typedef struct s_priority_queue
+{
+	t_queue_entry	*entries;
+	int				size;
+	int				capacity;
+}	t_priority_queue;
 
 typedef struct s_struct_input
 {
 	long					number_of_coders;
 	long					time_to_burnout;
-	int						flag_stop; //0 ok 1 stop
+	int						flag_stop;
 	long					time_to_compile;
 	long					time_to_debug;
 	long					time_to_refactor;
 	long					number_of_compiles_required;
 	long					dongle_cooldown;
-	long					scheduler; //bool 1/2 based on input
+	long					scheduler;
 	long					start_time;
 	struct s_struct_coder	**arr;
 	pthread_mutex_t			print_mutex;
-	pthread_mutex_t			*usb_array; // one per USB
+	pthread_mutex_t			*usb_array;
 	long					*usb_last_free_time;
-	pthread_mutex_t			monitor_mutex; // protects the queue
-	pthread_cond_t			monitor_cond; // signals waiting coders
-	struct s_queue_node		*scheduler_queue;
-
+	pthread_mutex_t			monitor_mutex;
+	pthread_cond_t			monitor_cond;
+	t_priority_queue		*scheduler_queue;
 }	t_struct_input;
-
-typedef struct s_queue_node
-{
-	struct s_struct_coder	*coder;
-	long					deadline;
-	struct s_queue_node		*next;
-
-}	t_queue_node;
 
 typedef struct s_struct_coder
 {
@@ -59,10 +63,9 @@ typedef struct s_struct_coder
 	long			id;
 	long			last_action_time;
 	long			counter_compiled;
-	int				flag_burnout; //0 ok, 1 is burnout
-	long			flag_finished; //0 std, 1 is finished
+	int				flag_burnout;
+	long			flag_finished;
 	pthread_t		thread;
-
 }	t_struct_coder;
 
 long			timestamp(void);
