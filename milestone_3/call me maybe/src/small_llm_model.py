@@ -103,7 +103,7 @@ class Small_LLM_Model:
         # Download and get paths to specific files
         vocab_file_name = self._tokenizer.vocab_files_names.get('vocab_file', "vocab.json")
         vocab_path = hf_hub_download(
-            repo_id=self._model_name, 
+            repo_id=self._model_name,
             filename=vocab_file_name
         )
         return vocab_path

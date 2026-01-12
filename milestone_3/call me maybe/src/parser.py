@@ -43,8 +43,14 @@ class Parser:
         try:
             with open(file_input_prompt, "r") as file_prompt:
                 d = json.load(file_prompt)
-                for prompt in d:
-                    prompt_list.append(str(prompt))
+                for prompt_obj in d:
+                    # Extract just the prompt string from the dictionary
+                    if isinstance(prompt_obj, dict) and "prompt" in prompt_obj:
+                        prompt_list.append(str(prompt_obj["prompt"]))
+                    elif isinstance(prompt_obj, str):
+                        prompt_list.append(prompt_obj)
+                    else:
+                        raise Exception("Bad prompt format")
         except FileNotFoundError:
             raise FileNotFoundError("File prompts not found")
 
@@ -53,26 +59,7 @@ class Parser:
                 raise Exception("Bad prompt sintax")
             if prompt.strip() == "":
                 raise Exception("Empty prompt found")
-            if prompt.count('"') % 2 != 0:
-                raise Exception("Unbalanced quotes in prompt")
             if len(prompt) > 1000:
                 raise Exception("Prompt too long")
-            if prompt.count("{") != prompt.count("}"):
-                raise Exception("Unbalanced braces in prompt")
-            if prompt.count("(") != prompt.count(")"):
-                raise Exception("Unbalanced parentheses in prompt")
-            if prompt.count("[") != prompt.count("]"):
-                raise Exception("Unbalanced brackets in prompt")
-            if "\n" in prompt:
-                raise Exception("Newline character in prompt")
-            if "\t" in prompt:
-                raise Exception("Tab character in prompt")
-            if prompt.startswith(" ") or prompt.endswith(" "):
-                raise Exception("Prompt starts or ends with whitespace")
-            if "  " in prompt:
-                raise Exception("Prompt contains consecutive spaces")
-            if any(ord(c) < 32 or ord(c) > 126 for c in prompt):
-                raise Exception("Prompt contains non-ASCII characters")
-            if prompt in prompt_list[:prompt_list.index(prompt)]:
-                raise Exception("Duplicate prompt found")
+        
         return prompt_list
