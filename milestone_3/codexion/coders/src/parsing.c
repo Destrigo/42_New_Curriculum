@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 12:26:56 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:13:44 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ int	parse_coders(t_struct_input *data)
 		}
 		data->arr[i]->data_input = data;
 		data->arr[i]->id = i + 1;
-		data->arr[i]->last_action_time = 0;
+		data->arr[i]->last_action_time = data->start_time;
 		data->arr[i]->counter_compiled = 0;
 		data->arr[i]->flag_burnout = 0;
 		data->arr[i]->flag_finished = 0;

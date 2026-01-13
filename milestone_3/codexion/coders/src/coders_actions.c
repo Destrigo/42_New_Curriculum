@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 12:29:15 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 16:05:01 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,54 +14,33 @@
 
 void	compile(t_struct_input *data, int id, long timeshot, int sleepms)
 {
-	int	elapsed;
-	int	chunk;
+	long	target_time;
 
 	safe_printf(data, id, timeshot, "is compiling\n");
-	elapsed = 0;
-	while (elapsed < sleepms && data->flag_stop == 0)
-	{
-		chunk = (sleepms - elapsed);
-		if ((sleepms - elapsed > 10))
-			chunk = 10;
-		usleep(chunk * 1000);
-		elapsed += chunk;
-	}
 	data->arr[id - 1]->last_action_time = timestamp();
+	target_time = timestamp() + sleepms;
+	while (timestamp() < target_time && data->flag_stop == 0)
+		usleep(1000);
 }
 
 void	debug(t_struct_input *data, int id, long timeshot, int sleepms)
 {
-	int	elapsed;
-	int	chunk;
+	long	target_time;
 
 	safe_printf(data, id, timeshot, "is debugging\n");
-	elapsed = 0;
-	while (elapsed < sleepms && data->flag_stop == 0)
-	{
-		chunk = (sleepms - elapsed);
-		if ((sleepms - elapsed > 10))
-			chunk = 10;
-		usleep(chunk * 1000);
-		elapsed += chunk;
-	}
+	target_time = timestamp() + sleepms;
+	while (timestamp() < target_time && data->flag_stop == 0)
+		usleep(1000);
 }
 
 void	refactor(t_struct_input *data, int id, long timeshot, int sleepms)
 {
-	int	elapsed;
-	int	chunk;
+	long	target_time;
 
 	safe_printf(data, id, timeshot, "is refactoring\n");
-	elapsed = 0;
-	while (elapsed < sleepms && data->flag_stop == 0)
-	{
-		chunk = (sleepms - elapsed);
-		if ((sleepms - elapsed > 10))
-			chunk = 10;
-		usleep(chunk * 1000);
-		elapsed += chunk;
-	}
+	target_time = timestamp() + sleepms;
+	while (timestamp() < target_time && data->flag_stop == 0)
+		usleep(1000);
 }
 
 void	safe_printf(t_struct_input *data, int id, long timeshot, char *str)

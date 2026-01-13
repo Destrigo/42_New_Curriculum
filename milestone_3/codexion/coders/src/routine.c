@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/07 21:37:34 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 16:03:17 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ static void	helper_one(t_struct_coder *coder, const long left, const long right)
 {
 	dequeue_coder(coder->data_input, coder);
 	pthread_mutex_unlock(&coder->data_input->monitor_mutex);
+	usleep(100);
 	pthread_mutex_lock(&coder->data_input->usb_array[left]);
 	pthread_mutex_lock(&coder->data_input->usb_array[right]);
 	safe_printf(coder->data_input,
@@ -65,10 +66,7 @@ static int	helper_two(t_struct_coder *coder, const long left, const long right)
 	helper_one(coder, left, right);
 	if (++coder->counter_compiled
 		== coder->data_input->number_of_compiles_required)
-	{
-		coder->flag_finished = 1;
-		return (-1);
-	}
+		return (coder->flag_finished = 1, -1);
 	if (coder->data_input->flag_stop == 1)
 		return (-1);
 	debug(coder->data_input, coder->id,
@@ -90,8 +88,6 @@ void	*routine(void *arg)
 	t_struct_coder			*coder;
 
 	coder = (t_struct_coder *)arg;
-	if (coder->last_action_time == 0)
-		coder->last_action_time = coder->data_input->start_time;
 	while (1)
 	{
 		if (coder->data_input->flag_stop == 1)

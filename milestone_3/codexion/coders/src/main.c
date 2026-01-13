@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/11 16:24:04 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 13:17:21 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ void	execute_multithread(t_struct_input *data_input)
 	pthread_join(monitor, NULL);
 	data_input->flag_stop = 1;
 	pthread_cond_broadcast(&data_input->monitor_cond);
-	usleep(50000);
+	usleep(30000);
 	pthread_cond_broadcast(&data_input->monitor_cond);
 	i = -1;
 	while (++i < data_input->number_of_coders)
