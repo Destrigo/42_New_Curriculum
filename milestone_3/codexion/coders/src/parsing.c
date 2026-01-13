@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
+/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/12 23:13:44 by marco            ###   ########.fr       */
+/*   Updated: 2026/01/13 12:26:56 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,23 @@ static void	helper_three(t_struct_input *data, char **argv)
 	data->scheduler = is_fifo_or_edf(argv[8]);
 }
 
+static int	helper_lostcount(t_struct_input *data)
+{
+	pthread_mutex_init(&data->print_mutex, NULL);
+	pthread_mutex_init(&data->monitor_mutex, NULL);
+	pthread_cond_init(&data->monitor_cond, NULL);
+	data->scheduler_queue = malloc(sizeof(t_priority_queue));
+	if (!data->scheduler_queue)
+		return (-1);
+	data->scheduler_queue->capacity = data->number_of_coders;
+	data->scheduler_queue->size = 0;
+	data->scheduler_queue->entries = malloc(sizeof(t_queue_entry)
+			* data->number_of_coders);
+	if (!data->scheduler_queue->entries)
+		return (free(data->scheduler_queue), -1);
+	return (0);
+}
+
 int	parse_datastruct(t_struct_input *data, char **argv)
 {
 	int	i;
@@ -57,18 +74,8 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 	while (--i >= 0)
 		data->usb_last_free_time[i] = 0;
 	helper_three(data, argv);
-	pthread_mutex_init(&data->print_mutex, NULL);
-	pthread_mutex_init(&data->monitor_mutex, NULL);
-	pthread_cond_init(&data->monitor_cond, NULL);
-	data->scheduler_queue = malloc(sizeof(t_priority_queue));
-	if (!data->scheduler_queue)
-		return (-1);
-	data->scheduler_queue->capacity = data->number_of_coders;
-	data->scheduler_queue->size = 0;
-	data->scheduler_queue->entries = malloc(sizeof(t_queue_entry)
-			* data->number_of_coders);
-	if (!data->scheduler_queue->entries)
-		return (free(data->scheduler_queue), -1);
+	if (helper_lostcount(data) == -1)
+		return (free(data->usb_array), free(data->usb_last_free_time), -1);
 	return (0);
 }
 

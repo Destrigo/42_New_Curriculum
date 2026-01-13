@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/04 21:52:10 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 12:29:15 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,4 +70,27 @@ void	safe_printf(t_struct_input *data, int id, long timeshot, char *str)
 	if (data->flag_stop == 0)
 		printf("%ld %d %s", timeshot, id, str);
 	pthread_mutex_unlock(&data->print_mutex);
+}
+
+int	can_take_dongles(t_struct_coder *coder)
+{
+	t_struct_input	*data;
+	long			left;
+	long			right;
+	long			now;
+
+	data = coder->data_input;
+	left = coder->id - 1;
+	right = coder->id % data->number_of_coders;
+	now = timestamp();
+	if (data->number_of_coders == 1)
+		return (0);
+	if (data->scheduler_queue->size == 0
+		|| data->scheduler_queue->entries[0].coder != coder)
+		return (0);
+	if (now - data->usb_last_free_time[left] < data->dongle_cooldown)
+		return (0);
+	if (now - data->usb_last_free_time[right] < data->dongle_cooldown)
+		return (0);
+	return (1);
 }

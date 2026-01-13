@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: marco <marco@student.42.fr>                +#+  +:+       +#+         #
+#    By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/05 12:06:34 by mtaranti          #+#    #+#              #
-#    Updated: 2026/01/09 20:52:54 by marco            ###   ########.fr        #
+#    Updated: 2026/01/13 12:41:42 by mtaranti         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,7 @@ SRC = 	src/main.c				\
 		src/time_stuff.c		\
 		src/helpers.c			\
 		src/routine.c			\
+		src/queue_actions.c		\
 		src/coders_actions.c
 OBJ = $(SRC:.c=.o)
 

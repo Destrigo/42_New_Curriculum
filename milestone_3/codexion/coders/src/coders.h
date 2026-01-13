@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   coders.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
+/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/12 23:16:59 by marco            ###   ########.fr       */
+/*   Updated: 2026/01/13 12:34:48 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,5 +93,10 @@ t_struct_input	*parse_input(char **argv);
 int				parse_datastruct(t_struct_input *data, char **argv);
 int				parse_coders(t_struct_input *data);
 long			get_timestamp(t_struct_input *data);
-
+void			heap_down(t_struct_input *data, int idx);
+void			heap_up(t_struct_input *data, int idx);
+int				has_higher_priority(t_struct_input *data,
+					t_queue_entry *a, t_queue_entry *b);
+long			get_priority(t_struct_input *data, t_queue_entry *entry);
+void			swap_entries(t_queue_entry *a, t_queue_entry *b);
 #endif
