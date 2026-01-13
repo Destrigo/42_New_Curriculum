@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 17:52:42 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 18:33:34 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,31 +53,26 @@ void	safe_printf(t_struct_input *data, int id, long timeshot, char *str)
 
 int	can_take_dongles(t_struct_coder *coder)
 {
-	t_struct_input	*data;
-	long			left;
-	long			right;
-	long			now;
-	int				i;
-	t_struct_coder	*candidate;
-	long			cand_left;
-	long			cand_right;
+	const t_struct_input	*data = coder->data_input;
+	const long				left = coder->id - 1;
+	const long				right = coder->id % data->number_of_coders;
+	int						i;
+	t_struct_coder			*candidate;
 
-	data = coder->data_input;
-	left = coder->id - 1;
-	right = coder->id % data->number_of_coders;
-	now = timestamp();
 	i = 0;
-	if (data->number_of_coders != 1 &&
-	    (now - data->usb_last_free_time[left] >= data->dongle_cooldown) &&
-		(now - data->usb_last_free_time[right] >= data->dongle_cooldown))
-	{	
+	if (data->number_of_coders != 1
+		&& (timestamp() - (data->usb_last_free_time[left]
+				>= data->dongle_cooldown))
+		&& (timestamp() - ((data->usb_last_free_time[right]
+					>= data->dongle_cooldown))))
+	{
 		while (i < data->scheduler_queue->size)
 		{
 			candidate = data->scheduler_queue->entries[i].coder;
-			cand_left = candidate->id - 1;
-			cand_right = candidate->id % data->number_of_coders;
-			if (now - data->usb_last_free_time[cand_left] >= data->dongle_cooldown
-				&& now - data->usb_last_free_time[cand_right] >= data->dongle_cooldown)
+			if ((timestamp() - data->usb_last_free_time[candidate->id - 1]
+					>= data->dongle_cooldown)
+				&& (timestamp() - data->usb_last_free_time[candidate->id
+						% data->number_of_coders] >= data->dongle_cooldown))
 				return (candidate == coder);
 			i++;
 		}

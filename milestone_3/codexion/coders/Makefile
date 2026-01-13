@@ -6,14 +6,14 @@
 #    By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/05 12:06:34 by mtaranti          #+#    #+#              #
-#    Updated: 2026/01/13 14:01:39 by mtaranti         ###   ########.fr        #
+#    Updated: 2026/01/13 18:25:45 by mtaranti         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = codexion
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -pthread -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -pthread
 RM = rm -f
 SRC = 	src/main.c				\
 		src/parsing.c			\
@@ -46,7 +46,7 @@ run: ./$(NAME)
 test1: re
 	./$(NAME) 1 1000 200 200 200 3 50 fifo
 test2: re
-	./$(NAME) 2 1000 300 200 200 3 50 edf
+	./$(NAME) 2 1000 300 200 200 3 50 fifo
 
 test3: re
 	./$(NAME) 2 1000 300 200 200 3 50 edf

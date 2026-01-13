@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 13:13:44 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/13 18:23:38 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 		return (-1);
 	i = data->number_of_coders;
 	while (--i >= 0)
-		data->usb_last_free_time[i] = 0;
+		data->usb_last_free_time[i] = data->start_time - data->dongle_cooldown;
 	helper_three(data, argv);
 	if (helper_lostcount(data) == -1)
 		return (free(data->usb_array), free(data->usb_last_free_time), -1);
