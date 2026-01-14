@@ -9,7 +9,8 @@ if __name__ == "__main__":
         parser = Parser(sys.argv[2], sys.argv[4])
         decoder = Decoder(parser.prompt_list, parser.func_list)
         outputs = decoder.decode()
-        with open(sys.argv[6], "w") as f:
-            f.write(outputs)
+        print(outputs)
+        # with open(sys.argv[6], "w") as f:
+        #     f.write(outputs)
     except Exception as e:
         raise Exception(e)

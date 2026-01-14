@@ -1,4 +1,3 @@
-from .models import Function
 import json
 
 
@@ -9,9 +8,9 @@ class Parser:
                  file_input_func: str) -> None:
         """creates a self.prompt_list that is a list with all the prompts"""
         self.prompt_list: list[str] = self.__parse_prompts(file_input_prompt)
-        self.func_list: list[Function] = self.__parse_func(file_input_func)
+        self.func_list: list[str] = self.__parse_func(file_input_func)
 
-    def __parse_func(self, file_input_func: str) -> list[Function]:
+    def __parse_func(self, file_input_func: str) -> list[str]:
         """
         takes the input file and parses the functions from it,
         returning list of functions

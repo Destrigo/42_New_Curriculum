@@ -17,7 +17,6 @@ class Decoder:
         with open(vocab_path) as f:
             self.vocabulary: dict[str, int] = json.load(f)
         self.matrix = self.build_allowed_token_matrix(functions)
-        self.max = len(self.matrix)
 
     def build_allowed_token_matrix(self,
                                    functions: list[str]
@@ -32,6 +31,23 @@ class Decoder:
             matrix.append(self.encode_text(func))
         return matrix
 
+    def get_allowed_token_ids(self, generated_ids: list[int]) -> list[int]:
+        """
+        Docstring for get_allowed_token_ids
+        
+        :param self: Description
+        :param id: Description
+        :type id: int
+        :return: Description
+        :rtype: list[int]
+        """
+        allowed = []
+        prefix_len = len(generated_ids)
+        for line in self.matrix:
+            if line[:prefix_len] == generated_ids and len(line) > prefix_len:
+                allowed.append(line[prefix_len])
+        return allowed
+
     def encode_text(self, text: str) -> list[int]:
         """Convert text to token IDs using the model's tokenizer."""
         return self.model._tokenizer.encode(text, add_special_tokens=False)
@@ -45,34 +61,32 @@ class Decoder:
         token_str = self.model._tokenizer.decode([token_id])
         return token_str
 
-    def decode(self) -> list[str]:
+    def decode(self) -> list[list[int]]:
         """Generate JSON function calls with constrained decoding"""
         # to create and return
         logits_matrix: list[list[int]] = []
-        i = 0
-        flag_match: bool = False
         flag_created: bool = False
         for prompt in self.prompts:
-            flag_created = False
             i = 0
-            while not flag_created:
-                flag_match = False
-            
-                input_ids = self.encode_text(prompt)
+            flag_created = False
+            input_ids = self.encode_text(prompt)
+            generated_ids: list[int] = []
+            while flag_created is False:
                 logits = self.model.get_logits_from_input_ids(input_ids)
-                next_logit = get_next_logit(logits)
-                for token, token_id in next_logit:
-                    for lst in self.matrix:
-                        if token_id == lst[i]:
-                            flag_match = True
-                        else:
-                            next_logit[token] = float(-inf)
-                if not flag_match:
-                    raise Exception("No tokens found")
-                logits.append(index(max(next_logit)))
-                for lst in self.matrix:
-                    if logits == lst:
-                        flag_created = True
-                        logits_matrix.append(logits)
+                allowed_ids = self.get_allowed_token_ids(generated_ids)
+                import math
+                masked_logits = [-math.inf] * len(logits)
+                for token_id in allowed_ids:
+                    if token_id < len(logits):
+                        masked_logits[token_id] = float(logits[token_id])
+                next_token_id = masked_logits.index(max(masked_logits))
+                input_ids.append(next_token_id)
+                generated_ids.append(next_token_id)
+                print(self.get_token_string(next_token_id))
+                prefix_matches = [line for line in self.matrix if line[:len(generated_ids)] == generated_ids]
+                # if len(prefix_matches) == 1:
+                #     # Full line matched
+                #     flag_created = True
+                #     logits_matrix.append(prefix_matches[0])
                 i += 1
         return logits_matrix
