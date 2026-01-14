@@ -84,9 +84,9 @@ class Decoder:
                 generated_ids.append(next_token_id)
                 print(self.get_token_string(next_token_id))
                 prefix_matches = [line for line in self.matrix if line[:len(generated_ids)] == generated_ids]
-                # if len(prefix_matches) == 1:
-                #     # Full line matched
-                #     flag_created = True
-                #     logits_matrix.append(prefix_matches[0])
+                if len(prefix_matches) == 1:
+                    # Full line matched
+                    flag_created = True
+                    logits_matrix.append(prefix_matches[0])
                 i += 1
         return logits_matrix
