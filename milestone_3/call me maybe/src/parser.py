@@ -16,22 +16,13 @@ class Parser:
         takes the input file and parses the functions from it,
         returning list of functions
         """
-        func_list: list[Function] = []
+        func_list: list[str] = []
         try:
             with open(file_input_func, "r") as file_func:
                 d = json.load(file_func)
-                for func in d:
-                    try:
-                        func_list.append(
-                            Function(
-                                name=str(func["fn_name"]),
-                                args=list(func["args_names"]),
-                                types=dict(func["args_types"]),
-                                return_type=str(func["return_type"])
-                            )
-                        )
-                    except Exception:
-                        raise Exception("Bad function sintax")
+                for func_obj in d:
+                    func_string = json.dumps(func_obj)
+                    func_list.append(func_string)
         except FileNotFoundError:
             raise Exception("File functions not found")
         return func_list
