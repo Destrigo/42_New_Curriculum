@@ -77,8 +77,10 @@ class Decoder:
                 import math
                 masked_logits = [-math.inf] * len(logits)
                 for token_id in allowed_ids:
-                    if token_id < len(logits):
-                        masked_logits[token_id] = float(logits[token_id])
+                    masked_logits[token_id] = float(logits[token_id])
+                for x in masked_logits:
+                    if x != (-math.inf):
+                        print(x)
                 next_token_id = masked_logits.index(max(masked_logits))
                 input_ids.append(next_token_id)
                 generated_ids.append(next_token_id)
