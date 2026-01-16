@@ -64,12 +64,16 @@ class Decoder:
     def decode(self) -> list[list[int]]:
         """Generate JSON function calls with constrained decoding"""
         # to create and return
-        logits_matrix: list[list[int]] = []
+        logits_matrix: list[str] = []
         flag_created: bool = False
+        general_prompt = "Recreate one of the following functions based on the prompt given at the end: "
+        for func in self.functions:
+            general_prompt += func
         for prompt in self.prompts:
             i = 0
             flag_created = False
-            input_ids = self.encode_text(prompt)
+            final_prompt = general_prompt + prompt
+            input_ids = self.encode_text(final_prompt)
             generated_ids: list[int] = []
             while flag_created is False:
                 logits = self.model.get_logits_from_input_ids(input_ids)
@@ -78,17 +82,17 @@ class Decoder:
                 masked_logits = [-math.inf] * len(logits)
                 for token_id in allowed_ids:
                     masked_logits[token_id] = float(logits[token_id])
-                for x in masked_logits:
-                    if x != (-math.inf):
-                        print(x)
                 next_token_id = masked_logits.index(max(masked_logits))
                 input_ids.append(next_token_id)
                 generated_ids.append(next_token_id)
-                print(self.get_token_string(next_token_id))
+                # print(self.get_token_string(next_token_id))
                 prefix_matches = [line for line in self.matrix if line[:len(generated_ids)] == generated_ids]
                 if len(prefix_matches) == 1:
                     # Full line matched
                     flag_created = True
-                    logits_matrix.append(prefix_matches[0])
+                    str_from_logits = ""
+                    for int_token in prefix_matches[0]:
+                        str_from_logits += self.model._tokenizer.decode(int_token)
+                    logits_matrix.append(str_from_logits)
                 i += 1
         return logits_matrix
