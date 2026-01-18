@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   routine.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 18:23:50 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/18 09:15:02 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ static void	dongle_checker(t_struct_coder *coder)
 	{
 		gettimeofday(&now, NULL);
 		timeout.tv_sec = now.tv_sec;
-		timeout.tv_nsec = (now.tv_usec + 100000) * 1000;
+		timeout.tv_nsec = (now.tv_usec) * 1000;
 		if (timeout.tv_nsec >= 1000000000)
 		{
 			timeout.tv_sec++;
@@ -36,7 +36,7 @@ static void	helper_one(t_struct_coder *coder, const long left, const long right)
 {
 	dequeue_coder(coder->data_input, coder);
 	pthread_mutex_unlock(&coder->data_input->monitor_mutex);
-	usleep(100);
+	usleep(10);
 	pthread_mutex_lock(&coder->data_input->usb_array[left]);
 	pthread_mutex_lock(&coder->data_input->usb_array[right]);
 	safe_printf(coder->data_input,

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 18:23:38 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/18 09:22:20 by marco            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 	i = -1;
 	data->number_of_coders = atoi(argv[1]);
 	data->start_time = timestamp();
+	helper_three(data, argv);
 	data->usb_array = malloc(sizeof(pthread_mutex_t) * data->number_of_coders);
 	if (!data->usb_array)
 		return (-1);
@@ -72,8 +73,7 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 		return (-1);
 	i = data->number_of_coders;
 	while (--i >= 0)
-		data->usb_last_free_time[i] = data->start_time - data->dongle_cooldown;
-	helper_three(data, argv);
+		data->usb_last_free_time[i] = 0; //data->start_time - data->dongle_cooldown;
 	if (helper_lostcount(data) == -1)
 		return (free(data->usb_array), free(data->usb_last_free_time), -1);
 	return (0);
