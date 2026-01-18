@@ -34,7 +34,6 @@ class Decoder:
     def get_allowed_token_ids(self, generated_ids: list[int]) -> list[int]:
         """
         Docstring for get_allowed_token_ids
-        
         :param self: Description
         :param id: Description
         :type id: int
@@ -66,7 +65,8 @@ class Decoder:
         # to create and return
         logits_matrix: list[str] = []
         flag_created: bool = False
-        general_prompt = "Recreate one of the following functions based on the prompt given at the end: "
+        general_prompt = ("Recreate one of the following functions"
+                          "based on the prompt given at the end: ")
         for func in self.functions:
             general_prompt += func
         for prompt in self.prompts:
@@ -86,13 +86,16 @@ class Decoder:
                 input_ids.append(next_token_id)
                 generated_ids.append(next_token_id)
                 # print(self.get_token_string(next_token_id))
-                prefix_matches = [line for line in self.matrix if line[:len(generated_ids)] == generated_ids]
+                prefix_matches = [line for line in self.matrix
+                                  if line[:len(generated_ids)]
+                                  == generated_ids]
                 if len(prefix_matches) == 1:
                     # Full line matched
                     flag_created = True
                     str_from_logits = ""
                     for int_token in prefix_matches[0]:
-                        str_from_logits += self.model._tokenizer.decode(int_token)
+                        str_from_logits += self.model._tokenizer.decode(
+                            int_token)
                     logits_matrix.append(str_from_logits)
                 i += 1
         return logits_matrix

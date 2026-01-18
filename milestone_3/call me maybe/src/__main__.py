@@ -1,7 +1,7 @@
 import sys
 from .constrained_decoder import Decoder
 from .parser import Parser
-# import json
+import json
 
 
 if __name__ == "__main__":
@@ -11,6 +11,6 @@ if __name__ == "__main__":
         outputs = decoder.decode()
         with open(sys.argv[6], "w") as f:
             for str in outputs:
-                f.write(str)
+                json.dump(str)
     except Exception as e:
         print(e)

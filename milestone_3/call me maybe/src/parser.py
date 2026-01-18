@@ -51,5 +51,4 @@ class Parser:
                 raise Exception("Empty prompt found")
             if len(prompt) > 1000:
                 raise Exception("Prompt too long")
-        
         return prompt_list
