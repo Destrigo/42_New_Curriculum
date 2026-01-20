@@ -8,7 +8,8 @@ class Tokenizer:
         self.vocab = vocab
         self.inv_vocab = {v: k for k, v in vocab.items()}
         self.vocab_size = len(vocab)
-    
+        print(self.vocab)
+
     def encode(self, text: str, add_special_tokens: bool = False) -> list[int]:
         """Convert text to token IDs using greedy longest-match."""
         token_ids: list[int] = []
@@ -17,31 +18,35 @@ class Tokenizer:
             # Try to match longest possible token starting at i
             best_match_len = 0
             best_token_id = None
-            
+
             for length in range(len(text) - i, 0, -1):
                 substring = text[i:i+length]
                 if substring in self.vocab:
                     best_match_len = length
                     best_token_id = self.vocab[substring]
                     break
-            
+
             if best_token_id is not None:
                 token_ids.append(best_token_id)
                 i += best_match_len
-            else:
-                # If no match found, raise error
-                raise ValueError(f"Cannot tokenize character at position {i}: '{text[i]}' in text '{text}'")
-        
+                print(token_ids)
+            # else:
+            #     # If no match found, raise error
+            #     raise ValueError("Cannot tokenize character at"
+            #                      f"position {i}: '{text[i]}' in text '{text}'")
+
         return token_ids
-    
+
     def decode(self, token_ids: list[int]) -> str:
         """Decode token IDs back to text - concatenate without spaces"""
-        tokens = [self.inv_vocab[token_id] for token_id in token_ids if token_id in self.inv_vocab]
+        tokens = [self.inv_vocab[token_id] for token_id in
+                  token_ids if token_id in self.inv_vocab]
         return ''.join(tokens)
-    
+
     def convert_ids_to_tokens(self, token_ids: list[int]) -> list[str]:
         """Convert token IDs to token strings"""
-        tokens = [self.inv_vocab[token_id] for token_id in token_ids if token_id in self.inv_vocab]
+        tokens = [self.inv_vocab[token_id] for token_id
+                  in token_ids if token_id in self.inv_vocab]
         return tokens
 
 
@@ -96,7 +101,7 @@ class Decoder:
 
     def encode_text(self, text: str) -> list[int]:
         """Convert text to token IDs using the model's tokenizer."""
-        return self.model.tokenizer.encode(text, add_special_tokens=False)
+        return self.tokenizer.encode(text, add_special_tokens=False)
 
     def decode_token_id(self, token_id: int) -> str:
         """takes logits give back dictionary equiv."""
