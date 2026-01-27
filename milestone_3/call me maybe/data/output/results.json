@@ -1,28 +1,8 @@
 [
   {
-    "prompt": "What is the square root of 16?",
-    "fn_name": "fn_reverse_string",
-    "args_names": [
-      "s"
-    ],
-    "args_types": {
-      "s": "str"
-    },
-    "return_type": "str"
+    "prompt": "What is the square root of 16?"
   },
   {
-    "prompt": "Reverse the string 'hello'",
-    "fn_name": "fn_substitute_string_with_regex",
-    "args_names": [
-      "source_string",
-      "regex",
-      "replacement"
-    ],
-    "args_types": {
-      "regex": "str",
-      "replacement": "str",
-      "source_string": "str"
-    },
-    "return_type": "str"
+    "prompt": "Reverse the string 'hello'"
   }
 ]

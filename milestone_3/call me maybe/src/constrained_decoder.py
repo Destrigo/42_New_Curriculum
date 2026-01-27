@@ -1,133 +1,8 @@
-"""Decoder module for constrained decoding with LLM."""
 from typing import List, Dict
 import json
 import math
 from .small_llm_model import Small_LLM_Model
-
-
-class Tokenizer:
-    """Custom tokenizer using vocabulary JSON with byte-level encoding.
-    This tokenizer handles the byte-level BPE encoding used by GPT-2/Qwen,
-    where text is first converted to bytes, then those bytes are encoded
-    using special unicode characters.
-    """
-    def __init__(self, vocab: Dict[str, int]) -> None:
-        """Initialize tokenizer with vocabulary.
-        Args:
-            vocab: Dictionary mapping token strings to token IDs
-        """
-        self.vocab = vocab
-        self.inv_vocab = {v: k for k, v in vocab.items()}
-        self.vocab_size = len(vocab)
-
-        # Create byte encoder (text → special unicode for BPE)
-        self.byte_encoder = self._bytes_to_unicode()
-        self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}
-
-    @staticmethod
-    def _bytes_to_unicode() -> Dict[int, str]:
-        """Create byte-to-unicode mapping (GPT-2 style).
-        Returns:
-            Dictionary mapping byte values to unicode characters
-        """
-        bs = (
-            list(range(ord("!"), ord("~") + 1))
-            + list(range(ord("¡"), ord("¬") + 1))
-            + list(range(ord("®"), ord("ÿ") + 1))
-        )
-        cs = bs[:]
-        n = 0
-        for b in range(2**8):
-            if b not in bs:
-                bs.append(b)
-                cs.append(2**8 + n)
-                n += 1
-        return {b: chr(c) for b, c in zip(bs, cs)}
-
-    def _encode_bytes(self, text: str) -> str:
-        """Convert text to byte-level representation.
-        Args:
-            text: Text to encode
-        Returns:
-            Text with bytes encoded as special unicode characters
-        """
-        return ''.join(self.byte_encoder[b] for b in text.encode('utf-8'))
-
-    def encode(self, text: str, add_special_tokens: bool = False) -> List[int]:
-        """Convert text to token IDs using greedy longest-match on
-        byte-encoded text.
-        Args:
-            text: Text to encode
-            add_special_tokens: Whether to add special tokens (ignored)
-        Returns:
-            List of token IDs
-        Raises:
-            ValueError: If text cannot be fully tokenized
-        """
-        # First convert text to byte-level representation
-        byte_text = self._encode_bytes(text)
-        token_ids: List[int] = []
-        i = 0
-        while i < len(byte_text):
-            best_match_len = 0
-            best_token_id = None
-            # Try to match longest possible token starting at i
-            for length in range(min(len(byte_text) - i, 100), 0, -1):
-                substring = byte_text[i:i+length]
-                if substring in self.vocab:
-                    best_match_len = length
-                    best_token_id = self.vocab[substring]
-                    break
-            if best_token_id is not None:
-                token_ids.append(best_token_id)
-                i += best_match_len
-            else:
-                raise ValueError(
-                    f"Cannot tokenize at position {i}: "
-                    f"byte_text='{byte_text[i:i+10]}...' "
-                    f"original='{text[:50]}...'"
-                )
-        return token_ids
-
-    def decode(self, token_ids: List[int],
-               skip_special_tokens: bool = False) -> str:
-        """Decode token IDs back to text.
-        Args:
-            token_ids: List of token IDs to decode
-            skip_special_tokens: Whether to skip special tokens (ignored)
-        Returns:
-            Decoded text string
-        """
-        # Get tokens
-        tokens = [
-            self.inv_vocab[token_id]
-            for token_id in token_ids
-            if token_id in self.inv_vocab
-        ]
-        # Join tokens
-        byte_text = ''.join(tokens)
-        # Decode bytes back to text
-        try:
-            text_bytes = bytearray([
-                self.byte_decoder[c] for c in byte_text
-            ])
-            return text_bytes.decode('utf-8', errors='replace')
-        except (KeyError, UnicodeDecodeError):
-            # Fallback: return as-is
-            return byte_text
-
-    def convert_ids_to_tokens(self, token_ids: List[int]) -> List[str]:
-        """Convert token IDs to token strings.
-        Args:
-            token_ids: List of token IDs
-        Returns:
-            List of token strings
-        """
-        return [
-            self.inv_vocab[token_id]
-            for token_id in token_ids
-            if token_id in self.inv_vocab
-        ]
+from .tokenizer import Tokenizer
 
 
 class Decoder:
@@ -270,6 +145,111 @@ class Decoder:
         """
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
+    def _refactor_args(self, func_obj: dict, prompt: str) -> str:
+        """
+        Given a function object with empty 'args', generate the
+        filled 'args' JSON using the LLM.
+        Stops when a valid JSON object is produced.
+        """
+        # --- setup -------------------------------------------------
+        remaining_args = set(func_obj["args_names"])
+
+        prompt_token_ids = set(self.encode_text(prompt))
+        structural_token_ids = set(self.encode_text(' {}[]":,'))
+        colon_ids = set(self.encode_text(':'))
+        comma_ids = set(self.encode_text(','))
+        brace_close_ids = set(self.encode_text('}'))
+
+        system_prompt = (
+            "Fill the function arguments using ONLY values copied "
+            "from the user prompt. Return ONLY valid JSON."
+        )
+        llm_prompt = (
+            "User prompt:\n"
+            f"{prompt}\n\n"
+            "Argument names:\n"
+            f"{func_obj['args_names']}\n\n"
+            "Fill the arguments as JSON:\n"
+        )
+        llm_prompt = system_prompt + llm_prompt
+        input_ids = self.encode_text(llm_prompt)
+        generated_ids: List[int] = []
+
+        # --- helper ------------------------------------------------
+        def current_text() -> str:
+            return self.decode_token_ids(generated_ids)
+
+        # --- decoding loop ----------------------------------------
+        max_steps = 300
+        for _ in range(max_steps):
+            logits = self.model.get_logits_from_input_ids(input_ids)
+
+            text = current_text()
+            allowed_ids = set()
+
+            # ---- STATE 1: start or after comma → expect key or } ----
+            if text.strip() == "" or text.strip().endswith(","):
+                # allow remaining arg names
+                for arg in remaining_args:
+                    allowed_ids |= set(self.encode_text(f'"{arg}"'))
+
+                # allow closing brace only if no args left
+                if not remaining_args:
+                    allowed_ids |= brace_close_ids
+
+            # ---- STATE 2: after key → expect colon -----------------
+            elif text.rstrip().endswith('"'):
+                allowed_ids |= colon_ids
+
+            # ---- STATE 3: after colon → expect value ----------------
+            elif text.rstrip().endswith(":"):
+                allowed_ids |= prompt_token_ids
+
+            # ---- STATE 4: after value → expect comma or } -----------
+            else:
+                # allow comma if more args remain
+                if remaining_args:
+                    allowed_ids |= comma_ids
+                allowed_ids |= brace_close_ids
+
+            # always allow structural tokens
+            allowed_ids |= structural_token_ids
+
+            # mask logits
+            masked_logits = [-math.inf] * len(logits)
+            for tid in allowed_ids:
+                if tid < len(logits):
+                    masked_logits[tid] = logits[tid]
+
+            if max(masked_logits) == -math.inf:
+                raise Exception(
+                    f"No valid tokens.\nGenerated so far:\n{text}"
+                )
+
+            next_id = masked_logits.index(max(masked_logits))
+            input_ids.append(next_id)
+            generated_ids.append(next_id)
+
+            text = current_text()
+            print(f"ARGS GEN: {text}")
+
+            # ---- update remaining args -----------------------------
+            for arg in list(remaining_args):
+                if f'"{arg}"' in text:
+                    remaining_args.remove(arg)
+
+            # ---- stop condition ------------------------------------
+            try:
+                parsed = json.loads(text)
+                return json.dumps(parsed)
+            except json.JSONDecodeError:
+                continue
+
+        raise RuntimeError(
+            "Failed to generate valid args JSON.\n"
+            f"Last output:\n{current_text()}"
+        )
+
     def decode(self) -> List[str]:
         """Generate function calls with constrained decoding.
         For each prompt, uses the LLM to generate a function call
@@ -281,15 +261,10 @@ class Decoder:
         """
         outputs: List[str] = []
 
-        for prompt_idx, prompt in enumerate(self.prompts):
-            try:
-                output = self._decode_single_prompt(prompt)
-                outputs.append(output)
-            except Exception as e:
-                raise Exception(
-                    f"Failed to decode prompt {prompt_idx+1} "
-                    f"('{prompt}'): {str(e)}"
-                ) from e
+        for prompt in self.prompts:
+            output = self._decode_single_prompt(prompt)
+            output = self._refactor_args(json.loads(output), prompt)
+            outputs.append(output)
         return outputs
 
     def _decode_single_prompt(self, prompt: str) -> str:
@@ -312,78 +287,69 @@ class Decoder:
             ) from e
 
         generated_ids: List[int] = []
-        max_iterations = 1000
-        iteration = 0
 
-        while not flag_created and iteration < max_iterations:
-            iteration += 1
-            try:
-                # Get logits from model (using public method only)
-                logits = self.model.get_logits_from_input_ids(input_ids)
-                # Get allowed token IDs
-                allowed_ids = self.get_allowed_token_ids(generated_ids)
-                if not allowed_ids:
-                    raise Exception(
-                        f"No allowed tokens at iteration {iteration}. "
-                        f"Generated so far: "
-                        f"{self.decode_token_ids(generated_ids)}"
-                    )
-                # Mask logits
-                masked_logits = [-math.inf] * len(logits)
-                for token_id in allowed_ids:
-                    if token_id < len(logits):
-                        masked_logits[token_id] = float(logits[token_id])
-                # Check if any valid logits exist
-                max_logit = max(masked_logits)
-                if max_logit == -math.inf:
-                    raise Exception(
-                        f"All allowed token logits are -inf. "
-                        f"Allowed IDs: {allowed_ids}"
-                    )
-                # Select best token
-                next_token_id = masked_logits.index(max_logit)
-                # Append to sequences
-                input_ids.append(next_token_id)
-                generated_ids.append(next_token_id)
-
-                # Debug output for first few iterations
-                # if iteration <= 10:
-                #     token_str = self.tokenizer.decode([next_token_id])
-                #     print(
-                #         f"Iter {iteration}: Token {next_token_id} = "
-                #         f"'{token_str}'"
-                #     )
-                #     print(
-                #         f"  Generated: "
-                #         f"{self.decode_token_ids(generated_ids)}"
-                #     )
-
-                # Check if generated sequence is a substring of exactly one
-                is_unique_match, matched_function = self.check_substring_match(
-                    generated_ids)
-                if is_unique_match:
-                    # Found unique substring match - return the full function
-                    flag_created = True
-                    str_from_tokens = self.decode_token_ids(matched_function)
-                    # print(f"Matched function: {str_from_tokens}")
-                    return str_from_tokens
-
-                # Also check prefix matching (original behavior as fallback)
-                prefix_matches = [
-                    line for line in self.matrix
-                    if line[:len(generated_ids)] == generated_ids
-                ]
-
-                if not prefix_matches:
-                    # No matches at all - something went wrong
-                    raise Exception(
-                        f"No prefix matches at iteration {iteration}. "
-                        f"Generated: {self.decode_token_ids(generated_ids)}"
-                    )
-            except Exception as e:
+        while not flag_created:
+            logits = self.model.get_logits_from_input_ids(input_ids)
+            # Get allowed token IDs
+            allowed_ids = self.get_allowed_token_ids(generated_ids)
+            if not allowed_ids:
                 raise Exception(
-                    f"Error at iteration {iteration}: {str(e)}"
-                ) from e
-        raise Exception(
-            f"Max iterations ({max_iterations}) reached for prompt"
-        )
+                    f"No allowed tokens "
+                    f"Generated so far: "
+                    f"{self.decode_token_ids(generated_ids)}"
+                )
+            # Mask logits
+            masked_logits = [-math.inf] * len(logits)
+            for token_id in allowed_ids:
+                if token_id < len(logits):
+                    masked_logits[token_id] = float(logits[token_id])
+            # Check if any valid logits exist
+            max_logit = max(masked_logits)
+            if max_logit == -math.inf:
+                raise Exception(
+                    f"All allowed token logits are -inf. "
+                    f"Allowed IDs: {allowed_ids}"
+                )
+            # Select best token
+            next_token_id = masked_logits.index(max_logit)
+            print(
+                f"Next token ID: {next_token_id} "
+                f"('{self.tokenizer.decode([next_token_id])}')"
+            )
+            # Append to sequences
+            input_ids.append(next_token_id)
+            generated_ids.append(next_token_id)
+
+            # Debug output for first few iterations
+            # if iteration <= 10:
+            #     token_str = self.tokenizer.decode([next_token_id])
+            #     print(
+            #         f"Iter {iteration}: Token {next_token_id} = "
+            #         f"'{token_str}'"
+            #     )
+            #     print(
+            #         f"  Generated: "
+            #         f"{self.decode_token_ids(generated_ids)}"
+            #     )
+
+            # Check if generated sequence is a substring of exactly one
+            is_unique_match, matched_function = self.check_substring_match(
+                generated_ids)
+            if is_unique_match:
+                # Found unique substring match - return the full function
+                flag_created = True
+                str_from_tokens = self.decode_token_ids(matched_function)
+                print(f"Matched function: {str_from_tokens}")
+                return str_from_tokens
+
+            # Also check prefix matching (original behavior as fallback)
+            prefix_matches = [
+                line for line in self.matrix
+                if line[:len(generated_ids)] == generated_ids
+            ]
+            if not prefix_matches:
+                # No matches at all - something went wrong
+                raise Exception(
+                    f"No prefix matches. "
+                    f"Generated: {self.decode_token_ids(generated_ids)}"
+                )

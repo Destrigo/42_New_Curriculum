@@ -21,7 +21,6 @@ class Parser:
                 d = json.load(file_func)
                 for func_obj in d:
                     func_string = json.dumps(func_obj,
-                                             sort_keys=True,
                                              separators=(",", ":"))
                     required_keys = {"fn_name",
                                      "args_names",
