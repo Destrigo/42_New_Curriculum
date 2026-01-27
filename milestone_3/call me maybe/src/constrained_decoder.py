@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict
 import json
 import math
 import re
@@ -33,8 +33,10 @@ class Decoder:
         self.tokenizer = Tokenizer(self.vocabulary)
         self.matrix = self.build_allowed_token_matrix(functions)
         self.general_prompt = (
-            "Recreate one of the following functions "
-            "based on the prompt given at the end: "
+            "You are a function selector. Choose the MOST SPECIFIC function that matches the task. "
+            "If the prompt mentions 'substitute', 'replace', or 'regex', choose fn_substitute_string_with_regex. "
+            "If it only mentions 'reverse', choose fn_reverse_string. "
+            "Available functions: "
         )
         for func in self.functions:
             self.general_prompt += func + " "
