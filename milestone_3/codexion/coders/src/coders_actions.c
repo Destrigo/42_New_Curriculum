@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   coders_actions.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marco <marco@student.42.fr>                +#+  +:+       +#+        */
+/*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/18 09:17:50 by marco            ###   ########.fr       */
+/*   Updated: 2026/01/27 21:38:58 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	compile(t_struct_input *data, int id, long timeshot, int sleepms)
 	data->arr[id - 1]->last_action_time = timestamp();
 	target_time = timestamp() + sleepms;
 	while (timestamp() < target_time && data->flag_stop == 0)
-		usleep(100);
+		usleep(1000);
 }
 
 void	debug(t_struct_input *data, int id, long timeshot, int sleepms)
@@ -30,7 +30,7 @@ void	debug(t_struct_input *data, int id, long timeshot, int sleepms)
 	safe_printf(data, id, timeshot, "is debugging\n");
 	target_time = timestamp() + sleepms;
 	while (timestamp() < target_time && data->flag_stop == 0)
-		usleep(100);
+		usleep(1000);
 }
 
 void	refactor(t_struct_input *data, int id, long timeshot, int sleepms)
@@ -40,7 +40,7 @@ void	refactor(t_struct_input *data, int id, long timeshot, int sleepms)
 	safe_printf(data, id, timeshot, "is refactoring\n");
 	target_time = timestamp() + sleepms;
 	while (timestamp() < target_time && data->flag_stop == 0)
-		usleep(100);
+		usleep(1000);
 }
 
 void	safe_printf(t_struct_input *data, int id, long timeshot, char *str)
@@ -62,9 +62,9 @@ int	can_take_dongles(t_struct_coder *coder)
 	i = 0;
 	if (data->number_of_coders != 1
 		&& (timestamp() - data->usb_last_free_time[left]
-				>= data->dongle_cooldown)
+			>= data->dongle_cooldown)
 		&& (timestamp() - data->usb_last_free_time[right]
-					>= data->dongle_cooldown))
+			>= data->dongle_cooldown))
 	{
 		while (i < data->scheduler_queue->size)
 		{
