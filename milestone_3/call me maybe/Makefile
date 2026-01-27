@@ -44,6 +44,9 @@ run:
 # Code quality
 # ==============================
 
+db:
+	$(PYTHON) -m script.py
+
 lint:
 	uv run flake8 --exclude .venv
 	uv run mypy .
