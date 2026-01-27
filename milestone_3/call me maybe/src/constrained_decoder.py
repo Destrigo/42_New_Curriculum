@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Set, Tuple
 import json
 import math
 import re
@@ -32,11 +32,16 @@ class Decoder:
 
         self.tokenizer = Tokenizer(self.vocabulary)
         self.matrix = self.build_allowed_token_matrix(functions)
+        
+        # Improved prompt for better function selection
         self.general_prompt = (
-            "You are a function selector. Choose the MOST SPECIFIC function that matches the task. "
-            "If the prompt mentions 'substitute', 'replace', or 'regex', choose fn_substitute_string_with_regex. "
-            "If it only mentions 'reverse', choose fn_reverse_string. "
-            "Available functions: "
+            "Select the most appropriate function based on the task. "
+            "Pay close attention to keywords: "
+            "'sum' or 'add' means fn_add_numbers, "
+            "'product' or 'multiply' means fn_multiply_numbers, "
+            "'substitute' or 'replace' means fn_substitute_string_with_regex, "
+            "'reverse' means fn_reverse_string. "
+            "Functions: "
         )
         for func in self.functions:
             self.general_prompt += func + " "
@@ -90,11 +95,7 @@ class Decoder:
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
     def _refactor_args(self, func_obj: dict, prompt: str) -> str:
-        """
-        Fill function arguments by extracting values from prompt.
-        
-        Uses smart pattern matching tailored to each function type.
-        """
+        """Fill function arguments by extracting values from prompt."""
         arg_names = func_obj.get("args_names", [])
         arg_types = func_obj.get("args_types", {})
         fn_name = func_obj.get("fn_name", "")
@@ -122,7 +123,6 @@ class Decoder:
         elif fn_name == "fn_get_square_root":
             args_dict = self._extract_sqrt_args(prompt, arg_names, arg_types)
         else:
-            # Generic extraction
             args_dict = self._extract_generic_args(prompt, arg_names, arg_types)
         
         for arg_name, value in args_dict.items():
@@ -138,20 +138,12 @@ class Decoder:
         prompt: str,
         arg_names: List[str]
     ) -> Dict[str, str]:
-        """
-        Extract args for fn_substitute_string_with_regex.
-        
-        Patterns:
-        - "Substitute X with Y in Z"
-        - "Replace X in Z with Y"
-        
-        Args: source_string, regex, replacement
-        """
+        """Extract args for fn_substitute_string_with_regex with semantic interpretation."""
         args = {}
         
-        # Pattern 1: "Substitute/Replace X with Y in 'Z'"
+        # Pattern 1: "Substitute X with Y in 'Z'"
         match = re.search(
-            r"(?:substitute|replace)\s+(?:the\s+)?(?:word\s+)?['\"]?(\w+)['\"]?\s+with\s+['\"]?(\w+)['\"]?\s+in\s+['\"]([^'\"]+)['\"]",
+            r"(?:substitute|replace)\s+(?:the\s+)?(?:word\s+)?['\"]?(\w+)['\"]?\s+(?:with|by)\s+['\"]?(\w+)['\"]?\s+in\s+['\"]([^'\"]+)['\"]",
             prompt,
             re.IGNORECASE
         )
@@ -159,11 +151,11 @@ class Decoder:
             args["regex"] = match.group(1)
             args["replacement"] = match.group(2)
             args["source_string"] = match.group(3)
-            return args
+            return self._interpret_semantic_values(args)
         
         # Pattern 2: "Replace X in 'Z' with Y"
         match = re.search(
-            r"(?:replace|substitute)\s+(?:all\s+)?['\"]?(\w+)['\"]?\s+in\s+['\"]([^'\"]+)['\"]\s+with\s+['\"]?(\w+)['\"]?",
+            r"(?:replace|substitute)\s+(?:all\s+)?['\"]?(\w+)['\"]?\s+in\s+['\"]([^'\"]+)['\"]\s+(?:with|by)\s+['\"]?(\w+)['\"]?",
             prompt,
             re.IGNORECASE
         )
@@ -171,11 +163,11 @@ class Decoder:
             args["regex"] = match.group(1)
             args["source_string"] = match.group(2)
             args["replacement"] = match.group(3)
-            return args
+            return self._interpret_semantic_values(args)
         
-        # Pattern 3: "Substitute X in 'Z' with 'Y'"
+        # Pattern 3: "Substitute X in the string 'Z' with 'Y'"
         match = re.search(
-            r"(?:substitute|replace)\s+(?:the\s+)?(\w+)\s+in\s+(?:the\s+string\s+)?['\"]([^'\"]+)['\"]\s+with\s+['\"]([^'\"]+)['\"]",
+            r"(?:substitute|replace)\s+(?:the\s+)?(\w+)\s+in\s+(?:the\s+string\s+)?['\"]([^'\"]+)['\"]\s+(?:with|by)\s+['\"]([^'\"]+)['\"]",
             prompt,
             re.IGNORECASE
         )
@@ -183,14 +175,55 @@ class Decoder:
             args["regex"] = match.group(1)
             args["source_string"] = match.group(2)
             args["replacement"] = match.group(3)
-            return args
+            return self._interpret_semantic_values(args)
         
         # Fallback: extract quoted strings in order
         quoted = re.findall(r"['\"]([^'\"]+)['\"]", prompt)
-        if len(quoted) >= 2:
-            args["source_string"] = quoted[0] if len(quoted) > 0 else ""
-            args["regex"] = quoted[1] if len(quoted) > 1 else ""
-            args["replacement"] = quoted[2] if len(quoted) > 2 else ""
+        if len(quoted) >= 1:
+            # Try to identify which is source_string (usually the longest or contains the context)
+            if len(quoted) >= 2:
+                # Heuristic: source_string is usually longer
+                sorted_by_length = sorted(quoted, key=len, reverse=True)
+                args["source_string"] = sorted_by_length[0]
+                
+                # Other quoted strings might be regex or replacement
+                remaining = [q for q in quoted if q != args["source_string"]]
+                if len(remaining) >= 1:
+                    args["regex"] = remaining[0]
+                if len(remaining) >= 2:
+                    args["replacement"] = remaining[1]
+        
+        return self._interpret_semantic_values(args)
+
+    def _interpret_semantic_values(self, args: Dict[str, str]) -> Dict[str, str]:
+        """Convert semantic descriptions to actual regex patterns and replacements."""
+        if 'regex' in args:
+            regex_value = args['regex'].lower()
+            
+            # Convert semantic descriptions to regex patterns
+            if regex_value in ['vowels', 'vowel']:
+                args['regex'] = '[aeiouAEIOU]'
+            elif regex_value in ['digits', 'digit', 'numbers', 'number']:
+                args['regex'] = r'\d+'
+            elif regex_value in ['consonants', 'consonant']:
+                args['regex'] = '[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]'
+            elif regex_value in ['spaces', 'space', 'whitespace']:
+                args['regex'] = r'\s+'
+            # Otherwise keep as-is (it's probably a literal word to replace)
+        
+        if 'replacement' in args:
+            repl_value = args['replacement'].lower()
+            
+            # Convert semantic descriptions to actual replacements
+            if repl_value in ['asterisks', 'asterisk', 'stars', 'star']:
+                args['replacement'] = '*'
+            elif repl_value in ['numbers', 'number']:
+                args['replacement'] = 'NUMBERS'
+            elif repl_value in ['underscore', 'underscores']:
+                args['replacement'] = '_'
+            elif repl_value in ['nothing', 'empty', 'blank']:
+                args['replacement'] = ''
+            # Otherwise keep as-is
         
         return args
 
@@ -200,16 +233,12 @@ class Decoder:
         arg_names: List[str],
         arg_types: Dict[str, str]
     ) -> Dict[str, float]:
-        """
-        Extract args for binary operations (add, multiply).
-        
-        Pattern: "What is the X of A and B"
-        """
+        """Extract args for binary operations (add, multiply)."""
         args = {}
         
         # Pattern: "X of A and B"
         match = re.search(
-            r"(?:sum|product|difference)\s+of\s+(\d+\.?\d*)\s+and\s+(\d+\.?\d*)",
+            r"(?:sum|product|difference|quotient)\s+of\s+(\d+\.?\d*)\s+and\s+(\d+\.?\d*)",
             prompt,
             re.IGNORECASE
         )
@@ -232,11 +261,7 @@ class Decoder:
         arg_names: List[str],
         arg_types: Dict[str, str]
     ) -> Dict[str, int]:
-        """
-        Extract args for fn_is_even.
-        
-        Pattern: "Is X an even number?"
-        """
+        """Extract args for fn_is_even."""
         args = {}
         
         # Pattern: "Is X an even/odd number"
@@ -257,11 +282,7 @@ class Decoder:
         prompt: str,
         arg_names: List[str]
     ) -> Dict[str, str]:
-        """
-        Extract args for fn_greet.
-        
-        Pattern: "Greet X"
-        """
+        """Extract args for fn_greet."""
         args = {}
         
         # Pattern: "Greet X"
@@ -282,11 +303,7 @@ class Decoder:
         prompt: str,
         arg_names: List[str]
     ) -> Dict[str, str]:
-        """
-        Extract args for fn_reverse_string.
-        
-        Pattern: "Reverse the string 'X'"
-        """
+        """Extract args for fn_reverse_string."""
         args = {}
         
         # Pattern: "Reverse 'X'" or "Reverse the string 'X'"
@@ -308,11 +325,7 @@ class Decoder:
         arg_names: List[str],
         arg_types: Dict[str, str]
     ) -> Dict[str, float]:
-        """
-        Extract args for fn_get_square_root.
-        
-        Pattern: "What is the square root of X"
-        """
+        """Extract args for fn_get_square_root."""
         args = {}
         
         # Pattern: "square root of X"
@@ -334,12 +347,9 @@ class Decoder:
         arg_names: List[str],
         arg_types: Dict[str, str]
     ) -> Dict[str, any]:
-        """
-        Generic extraction for any function.
-        """
+        """Generic extraction for any function."""
         args = {}
         
-        # Extract quoted strings and numbers
         quoted_strings = re.findall(r"['\"]([^'\"]+)['\"]", prompt)
         numbers = re.findall(r'\b\d+\.?\d*\b', prompt)
         
@@ -371,9 +381,46 @@ class Decoder:
 
         for prompt in self.prompts:
             output = self._decode_single_prompt(prompt)
+            
+            # Validate and correct function selection if needed
+            func_obj = json.loads(output)
+            func_obj = self._validate_function_selection(func_obj, prompt)
+            output = json.dumps(func_obj)
+            
             output = self._refactor_args(json.loads(output), prompt)
             outputs.append(output)
         return outputs
+
+    def _validate_function_selection(self, func_obj: dict, prompt: str) -> dict:
+        """Validate and correct function selection based on prompt keywords."""
+        fn_name = func_obj.get("fn_name", "")
+        prompt_lower = prompt.lower()
+        
+        # Check for operation keywords
+        if 'sum' in prompt_lower or 'add' in prompt_lower:
+            if fn_name != 'fn_add_numbers':
+                print(f"⚠️  Correcting function: {fn_name} → fn_add_numbers")
+                # Find the correct function
+                for func_str in self.functions:
+                    if '"fn_name":"fn_add_numbers"' in func_str:
+                        return json.loads(func_str)
+        
+        if ('multiply' in prompt_lower or 'product' in prompt_lower) and 'sum' not in prompt_lower:
+            if fn_name != 'fn_multiply_numbers':
+                print(f"⚠️  Correcting function: {fn_name} → fn_multiply_numbers")
+                for func_str in self.functions:
+                    if '"fn_name":"fn_multiply_numbers"' in func_str:
+                        return json.loads(func_str)
+        
+        # Check if should be substitute but selected reverse
+        if ('substitute' in prompt_lower or 'replace' in prompt_lower):
+            if fn_name == 'fn_reverse_string':
+                print(f"⚠️  Correcting function: {fn_name} → fn_substitute_string_with_regex")
+                for func_str in self.functions:
+                    if '"fn_name":"fn_substitute_string_with_regex"' in func_str:
+                        return json.loads(func_str)
+        
+        return func_obj
 
     def _decode_single_prompt(self, prompt: str) -> str:
         """Decode a single prompt to a function call."""

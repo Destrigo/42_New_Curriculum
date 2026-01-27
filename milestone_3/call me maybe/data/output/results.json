@@ -25,17 +25,16 @@
     "fn_name": "fn_substitute_string_with_regex",
     "args": {
       "source_string": "Hello 34 I",
-      "regex": " with ",
-      "replacement": ""
+      "regex": " with "
     }
   },
   {
     "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
     "fn_name": "fn_substitute_string_with_regex",
     "args": {
-      "regex": "vowels",
+      "regex": "[aeiouAEIOU]",
       "source_string": "Programming is fun",
-      "replacement": "asterisks"
+      "replacement": "*"
     }
   },
   {
@@ -49,7 +48,7 @@
   },
   {
     "prompt": "What is the sum of 2 and 3?",
-    "fn_name": "fn_multiply_numbers",
+    "fn_name": "fn_add_numbers",
     "args": {
       "a": 2.0,
       "b": 3.0
@@ -57,7 +56,7 @@
   },
   {
     "prompt": "What is the sum of 265 and 345?",
-    "fn_name": "fn_multiply_numbers",
+    "fn_name": "fn_add_numbers",
     "args": {
       "a": 265.0,
       "b": 345.0
