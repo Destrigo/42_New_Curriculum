@@ -20,7 +20,16 @@ class Parser:
             with open(file_input_func, "r") as file_func:
                 d = json.load(file_func)
                 for func_obj in d:
-                    func_string = json.dumps(func_obj)
+                    func_string = json.dumps(func_obj,
+                                             sort_keys=True,
+                                             separators=(",", ":"))
+                    required_keys = {"fn_name",
+                                     "args_names",
+                                     "args_types",
+                                     "return_type"}
+                    if not required_keys.issubset(func_obj):
+                        raise ValueError("Invalid function "
+                                         f"schema: {func_obj}")
                     func_list.append(func_string)
         except FileNotFoundError:
             raise Exception("File functions not found")

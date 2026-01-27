@@ -1,4 +1,3 @@
-from src.constrained_decoder import Decoder
 from src.small_llm_model import Small_LLM_Model
 import json
 

@@ -1,1 +1,184 @@
-{"fn_name": "fn_get_square_root", "args_names": ["a"], "args_types": {"a": "float"}, "return_type": "float"}{"fn_name": "fn_reverse_string", "args_names": ["s"], "args_types": {"s": "str"}, "return_type": "str"}{"fn_name": "fn_reverse_string", "args_names": ["s"], "args_types": {"s": "str"}, "return_type": "str"}{"fn_name": "fn_substitute_string_with_regex", "args_names": ["source_string", "regex", "replacement"], "args_types": {"source_string": "str", "regex": "str", "replacement": "str"}, "return_type": "str"}{"fn_name": "fn_substitute_string_with_regex", "args_names": ["source_string", "regex", "replacement"], "args_types": {"source_string": "str", "regex": "str", "replacement": "str"}, "return_type": "str"}{"fn_name": "fn_substitute_string_with_regex", "args_names": ["source_string", "regex", "replacement"], "args_types": {"source_string": "str", "regex": "str", "replacement": "str"}, "return_type": "str"}{"fn_name": "fn_add_numbers", "args_names": ["a", "b"], "args_types": {"a": "float", "b": "float"}, "return_type": "float"}{"fn_name": "fn_add_numbers", "args_names": ["a", "b"], "args_types": {"a": "float", "b": "float"}, "return_type": "float"}{"fn_name": "fn_is_even", "args_names": ["n"], "args_types": {"n": "int"}, "return_type": "bool"}{"fn_name": "fn_is_even", "args_names": ["n"], "args_types": {"n": "int"}, "return_type": "bool"}{"fn_name": "fn_multiply_numbers", "args_names": ["a", "b"], "args_types": {"a": "float", "b": "float"}, "return_type": "float"}{"fn_name": "fn_multiply_numbers", "args_names": ["a", "b"], "args_types": {"a": "float", "b": "float"}, "return_type": "float"}{"fn_name": "fn_greet", "args_names": ["name"], "args_types": {"name": "str"}, "return_type": "str"}{"fn_name": "fn_greet", "args_names": ["name"], "args_types": {"name": "str"}, "return_type": "str"}
+[
+  {
+    "prompt": "What is the square root of 16?",
+    "args_names": [
+      "s"
+    ],
+    "args_types": {
+      "s": "str"
+    },
+    "fn_name": "fn_reverse_string",
+    "return_type": "str"
+  },
+  {
+    "prompt": "Reverse the string 'hello'",
+    "args_names": [
+      "source_string",
+      "regex",
+      "replacement"
+    ],
+    "args_types": {
+      "regex": "str",
+      "replacement": "str",
+      "source_string": "str"
+    },
+    "fn_name": "fn_substitute_string_with_regex",
+    "return_type": "str"
+  },
+  {
+    "prompt": "Reverse the string 'world'",
+    "args_names": [
+      "source_string",
+      "regex",
+      "replacement"
+    ],
+    "args_types": {
+      "regex": "str",
+      "replacement": "str",
+      "source_string": "str"
+    },
+    "fn_name": "fn_substitute_string_with_regex",
+    "return_type": "str"
+  },
+  {
+    "prompt": "Substitute the digits in the string 'Hello 34 I'm 233 years old' with 'NUMBERS'",
+    "args_names": [
+      "source_string",
+      "regex",
+      "replacement"
+    ],
+    "args_types": {
+      "regex": "str",
+      "replacement": "str",
+      "source_string": "str"
+    },
+    "fn_name": "fn_substitute_string_with_regex",
+    "return_type": "str"
+  },
+  {
+    "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
+    "args_names": [
+      "source_string",
+      "regex",
+      "replacement"
+    ],
+    "args_types": {
+      "regex": "str",
+      "replacement": "str",
+      "source_string": "str"
+    },
+    "fn_name": "fn_substitute_string_with_regex",
+    "return_type": "str"
+  },
+  {
+    "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'",
+    "args_names": [
+      "source_string",
+      "regex",
+      "replacement"
+    ],
+    "args_types": {
+      "regex": "str",
+      "replacement": "str",
+      "source_string": "str"
+    },
+    "fn_name": "fn_substitute_string_with_regex",
+    "return_type": "str"
+  },
+  {
+    "prompt": "What is the sum of 2 and 3?",
+    "args_names": [
+      "a",
+      "b"
+    ],
+    "args_types": {
+      "a": "float",
+      "b": "float"
+    },
+    "fn_name": "fn_add_numbers",
+    "return_type": "float"
+  },
+  {
+    "prompt": "What is the sum of 265 and 345?",
+    "args_names": [
+      "a",
+      "b"
+    ],
+    "args_types": {
+      "a": "float",
+      "b": "float"
+    },
+    "fn_name": "fn_add_numbers",
+    "return_type": "float"
+  },
+  {
+    "prompt": "Is 4 an even number?",
+    "args_names": [
+      "n"
+    ],
+    "args_types": {
+      "n": "int"
+    },
+    "fn_name": "fn_is_even",
+    "return_type": "bool"
+  },
+  {
+    "prompt": "Is 7 an even number?",
+    "args_names": [
+      "n"
+    ],
+    "args_types": {
+      "n": "int"
+    },
+    "fn_name": "fn_is_even",
+    "return_type": "bool"
+  },
+  {
+    "prompt": "What is the product of 3 and 5?",
+    "args_names": [
+      "a",
+      "b"
+    ],
+    "args_types": {
+      "a": "float",
+      "b": "float"
+    },
+    "fn_name": "fn_multiply_numbers",
+    "return_type": "float"
+  },
+  {
+    "prompt": "What is the product of 12 and 4?",
+    "args_names": [
+      "a",
+      "b"
+    ],
+    "args_types": {
+      "a": "float",
+      "b": "float"
+    },
+    "fn_name": "fn_multiply_numbers",
+    "return_type": "float"
+  },
+  {
+    "prompt": "Greet shrek",
+    "args_names": [
+      "name"
+    ],
+    "args_types": {
+      "name": "str"
+    },
+    "fn_name": "fn_greet",
+    "return_type": "str"
+  },
+  {
+    "prompt": "Greet john",
+    "args_names": [
+      "name"
+    ],
+    "args_types": {
+      "name": "str"
+    },
+    "fn_name": "fn_greet",
+    "return_type": "str"
+  }
+]
