@@ -24,16 +24,16 @@
     "prompt": "Substitute the digits in the string 'Hello 34 I'm 233 years old' with 'NUMBERS'",
     "fn_name": "fn_reverse_string",
     "args": {
-      "s": "in"
+      "s": "Hello 34 I"
     }
   },
   {
     "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
     "fn_name": "fn_substitute_string_with_regex",
     "args": {
-      "source_string": "Programming is fun",
       "regex": "vowels",
-      "replacement": "vowels"
+      "source_string": "Programming is fun",
+      "replacement": "asterisks"
     }
   },
   {
@@ -63,14 +63,14 @@
     "prompt": "Is 4 an even number?",
     "fn_name": "fn_is_even",
     "args": {
-      "n": "even"
+      "n": 4
     }
   },
   {
     "prompt": "Is 7 an even number?",
     "fn_name": "fn_is_even",
     "args": {
-      "n": "even"
+      "n": 7
     }
   },
   {
@@ -93,14 +93,14 @@
     "prompt": "Greet shrek",
     "fn_name": "fn_greet",
     "args": {
-      "name": "Greet"
+      "name": "shrek"
     }
   },
   {
     "prompt": "Greet john",
     "fn_name": "fn_greet",
     "args": {
-      "name": "Greet"
+      "name": "john"
     }
   }
 ]
