@@ -1,6 +1,7 @@
-from typing import List, Dict
+from typing import List, Dict, Set, Tuple
 import json
 import math
+import re
 from .small_llm_model import Small_LLM_Model
 from .tokenizer import Tokenizer
 
@@ -72,10 +73,6 @@ class Decoder:
             try:
                 token_ids = self.encode_text(func)
                 matrix.append(token_ids)
-                # print(
-                #     f"Function {i+1} tokenized to {len(token_ids)} tokens: "
-                #     f"{func[:50]}..."
-                # )
             except ValueError as e:
                 raise ValueError(
                     f"Failed to tokenize function {i+1}: {func[:50]}..."
@@ -147,108 +144,347 @@ class Decoder:
 
     def _refactor_args(self, func_obj: dict, prompt: str) -> str:
         """
-        Given a function object with empty 'args', generate the
-        filled 'args' JSON using the LLM.
-        Stops when a valid JSON object is produced.
+        Fill function arguments by extracting values from prompt.
+        
+        Uses constrained LLM generation to extract each argument value
+        individually, then constructs valid JSON programmatically.
+        
+        This approach guarantees 100% valid JSON output.
+        
+        Args:
+            func_obj: Function object with fn_name, args_names, etc.
+            prompt: User's natural language prompt
+            
+        Returns:
+            JSON string with filled arguments
         """
-        # --- setup -------------------------------------------------
-        remaining_args = set(func_obj["args_names"])
+        arg_names = func_obj.get("args_names", [])
+        arg_types = func_obj.get("args_types", {})
+        
+        if not arg_names:
+            func_obj["args"] = {}
+            return json.dumps(func_obj)
+        
+        print(f"\n=== Extracting {len(arg_names)} arguments ===")
+        
+        args_dict = {}
+        
+        # Extract each argument value one by one
+        for arg_name in arg_names:
+            arg_type = arg_types.get(arg_name, "string")
+            print(f"Extracting '{arg_name}' (type: {arg_type})...")
+            
+            value = self._extract_single_argument(arg_name, arg_type, prompt)
+            args_dict[arg_name] = value
+            
+            print(f"  → '{value}'")
+        
+        # Build valid JSON programmatically (guaranteed correct)
+        func_obj["args"] = args_dict
+        result = json.dumps(func_obj)
+        
+        print(f"\n✓ Result: {result}\n")
+        return result
 
-        prompt_token_ids = set(self.encode_text(prompt))
-        structural_token_ids = set(self.encode_text(' {}[]":,'))
-        colon_ids = set(self.encode_text(':'))
-        comma_ids = set(self.encode_text(','))
-        brace_close_ids = set(self.encode_text('}'))
-
-        system_prompt = (
-            "Fill the function arguments using ONLY values copied "
-            "from the user prompt. Return ONLY valid JSON."
+    def _extract_single_argument(
+        self,
+        arg_name: str,
+        arg_type: str,
+        prompt: str
+    ) -> str:
+        """
+        Extract a single argument value from prompt using constrained LLM.
+        
+        Constrains generation to only tokens that appear in the prompt,
+        ensuring values are extracted rather than hallucinated.
+        
+        Args:
+            arg_name: Name of argument to extract
+            arg_type: Type of the argument
+            prompt: User prompt containing the value
+            
+        Returns:
+            Extracted value as string
+        """
+        # First try regex-based extraction (fast, reliable)
+        regex_value = self._extract_with_regex(arg_name, prompt)
+        if regex_value:
+            return self._convert_type(regex_value, arg_type)
+        
+        # Fallback to LLM-based extraction
+        return self._extract_with_llm(arg_name, arg_type, prompt)
+    
+    def _extract_with_regex(self, arg_name: str, prompt: str) -> str:
+        """
+        Try to extract argument value using regex patterns.
+        
+        Args:
+            arg_name: Name of argument
+            prompt: User prompt
+            
+        Returns:
+            Extracted value or empty string if not found
+        """
+        # Pattern 1: "arg_name: value" or "arg_name = value"
+        patterns = [
+            rf'{re.escape(arg_name)}\s*[:=]\s*["\']?([^"\'\s,\.]+)["\']?',
+            rf'{re.escape(arg_name)}\s+is\s+["\']?([^"\'\s,\.]+)["\']?',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, prompt, re.IGNORECASE)
+            if match:
+                return match.group(1).strip()
+        
+        # Pattern 2: Extract quoted strings
+        quoted = re.findall(r'["\']([^"\']+)["\']', prompt)
+        if quoted:
+            # Return first quoted string that's not the arg name
+            for q in quoted:
+                if q.lower() != arg_name.lower():
+                    return q
+        
+        # Pattern 3: Extract numbers
+        numbers = re.findall(r'\b\d+\.?\d*\b', prompt)
+        if numbers:
+            return numbers[0]
+        
+        return ""
+    
+    def _extract_with_llm(
+        self,
+        arg_name: str,
+        arg_type: str,
+        prompt: str
+    ) -> str:
+        """
+        Extract argument value using LLM with constrained generation.
+        
+        Constrains generation to only prompt tokens to prevent hallucination.
+        
+        Args:
+            arg_name: Name of argument
+            arg_type: Type of argument
+            prompt: User prompt
+            
+        Returns:
+            Extracted value
+        """
+        # Tokenize prompt to get allowed tokens
+        prompt_tokens = self.encode_text(prompt)
+        prompt_token_set = set(prompt_tokens)
+        
+        # Build prompt subsequences for smart matching
+        prompt_subsequences = self._build_prompt_subsequences(prompt_tokens)
+        
+        # Create extraction prompt
+        extraction_prompt = (
+            f"Extract the {arg_name} from this text. "
+            f"Return ONLY the {arg_name} value.\n"
+            f"Text: {prompt}\n"
+            f"{arg_name}:"
         )
-        llm_prompt = (
-            "User prompt:\n"
-            f"{prompt}\n\n"
-            "Argument names:\n"
-            f"{func_obj['args_names']}\n\n"
-            "Fill the arguments as JSON:\n"
-        )
-        llm_prompt = system_prompt + llm_prompt
-        input_ids = self.encode_text(llm_prompt)
+        
+        input_ids = self.encode_text(extraction_prompt)
         generated_ids: List[int] = []
-
-        # --- helper ------------------------------------------------
-        def current_text() -> str:
-            return self.decode_token_ids(generated_ids)
-
-        # --- decoding loop ----------------------------------------
-        max_steps = 300
-        for _ in range(max_steps):
+        
+        # Generate value with constraints
+        max_tokens = 20
+        
+        for step in range(max_tokens):
             logits = self.model.get_logits_from_input_ids(input_ids)
-
-            text = current_text()
-            allowed_ids = set()
-
-            # ---- STATE 1: start or after comma → expect key or } ----
-            if text.strip() == "" or text.strip().endswith(","):
-                # allow remaining arg names
-                for arg in remaining_args:
-                    allowed_ids |= set(self.encode_text(f'"{arg}"'))
-
-                # allow closing brace only if no args left
-                if not remaining_args:
-                    allowed_ids |= brace_close_ids
-
-            # ---- STATE 2: after key → expect colon -----------------
-            elif text.rstrip().endswith('"'):
-                allowed_ids |= colon_ids
-
-            # ---- STATE 3: after colon → expect value ----------------
-            elif text.rstrip().endswith(":"):
-                allowed_ids |= prompt_token_ids
-
-            # ---- STATE 4: after value → expect comma or } -----------
-            else:
-                # allow comma if more args remain
-                if remaining_args:
-                    allowed_ids |= comma_ids
-                allowed_ids |= brace_close_ids
-
-            # always allow structural tokens
-            allowed_ids |= structural_token_ids
-
-            # mask logits
+            
+            # Get allowed tokens
+            allowed = self._get_allowed_tokens_for_value(
+                generated_ids=generated_ids,
+                prompt_token_set=prompt_token_set,
+                prompt_subsequences=prompt_subsequences
+            )
+            
+            if not allowed:
+                break
+            
+            # Mask logits
             masked_logits = [-math.inf] * len(logits)
-            for tid in allowed_ids:
-                if tid < len(logits):
+            for tid in allowed:
+                if 0 <= tid < len(logits):
                     masked_logits[tid] = logits[tid]
-
+            
             if max(masked_logits) == -math.inf:
-                raise Exception(
-                    f"No valid tokens.\nGenerated so far:\n{text}"
-                )
-
-            next_id = masked_logits.index(max(masked_logits))
-            input_ids.append(next_id)
-            generated_ids.append(next_id)
-
-            text = current_text()
-            print(f"ARGS GEN: {text}")
-
-            # ---- update remaining args -----------------------------
-            for arg in list(remaining_args):
-                if f'"{arg}"' in text:
-                    remaining_args.remove(arg)
-
-            # ---- stop condition ------------------------------------
-            try:
-                parsed = json.loads(text)
-                return json.dumps(parsed)
-            except json.JSONDecodeError:
-                continue
-
-        raise RuntimeError(
-            "Failed to generate valid args JSON.\n"
-            f"Last output:\n{current_text()}"
+                break
+            
+            next_token_id = masked_logits.index(max(masked_logits))
+            next_token_str = self.decode_token_ids([next_token_id])
+            
+            # Stop on newline or if value is getting too long
+            if '\n' in next_token_str or step > 15:
+                break
+            
+            input_ids.append(next_token_id)
+            generated_ids.append(next_token_id)
+        
+        # Decode and clean the value
+        value = self.decode_token_ids(generated_ids).strip()
+        value = self._clean_extracted_value(value)
+        
+        return self._convert_type(value, arg_type)
+    
+    def _build_prompt_subsequences(
+        self,
+        prompt_tokens: List[int]
+    ) -> Dict[Tuple[int, ...], str]:
+        """
+        Build all contiguous token subsequences from prompt.
+        
+        Args:
+            prompt_tokens: Token IDs from prompt
+            
+        Returns:
+            Dict mapping token tuples to decoded strings
+        """
+        subsequences = {}
+        max_length = 10
+        
+        for start in range(len(prompt_tokens)):
+            for length in range(1, min(max_length + 1, len(prompt_tokens) - start + 1)):
+                subseq = tuple(prompt_tokens[start:start + length])
+                decoded = self.decode_token_ids(list(subseq))
+                if decoded.strip():  # Only meaningful text
+                    subsequences[subseq] = decoded
+        
+        return subsequences
+    
+    def _get_allowed_tokens_for_value(
+        self,
+        generated_ids: List[int],
+        prompt_token_set: Set[int],
+        prompt_subsequences: Dict[Tuple[int, ...], str]
+    ) -> List[int]:
+        """
+        Get allowed tokens for value generation.
+        
+        Constrains to prompt tokens and uses smart subsequence matching.
+        
+        Args:
+            generated_ids: Tokens generated so far
+            prompt_token_set: Set of all prompt token IDs
+            prompt_subsequences: Map of token subsequences
+            
+        Returns:
+            List of allowed token IDs
+        """
+        allowed = prompt_token_set.copy()
+        
+        # Add newline to allow stopping
+        try:
+            newline_tokens = self.encode_text('\n')
+            allowed.update(newline_tokens)
+        except:
+            pass
+        
+        # Smart subsequence matching
+        if generated_ids:
+            current_tuple = tuple(generated_ids)
+            
+            # Find subsequences that start with current tokens
+            matching = [
+                subseq for subseq in prompt_subsequences.keys()
+                if len(subseq) >= len(current_tuple) and
+                   subseq[:len(current_tuple)] == current_tuple
+            ]
+            
+            if matching:
+                # Constrain to tokens that continue these subsequences
+                next_candidates = set()
+                for subseq in matching:
+                    if len(subseq) > len(current_tuple):
+                        next_candidates.add(subseq[len(current_tuple)])
+                
+                if next_candidates:
+                    # Only allow continuation tokens
+                    allowed = next_candidates
+                    # Keep newline for stopping
+                    try:
+                        newline_tokens = self.encode_text('\n')
+                        allowed.update(newline_tokens)
+                    except:
+                        pass
+        
+        return list(allowed)
+    
+    def _clean_extracted_value(self, value: str) -> str:
+        """
+        Clean up extracted value.
+        
+        Args:
+            value: Raw extracted value
+            
+        Returns:
+            Cleaned value
+        """
+        # Take only first line
+        value = value.split('\n')[0].strip()
+        
+        # Remove common prefixes
+        value = re.sub(
+            r'^(value|result|answer|output):\s*',
+            '',
+            value,
+            flags=re.IGNORECASE
         )
+        
+        # Remove quotes
+        value = value.strip('"\'')
+        
+        # Remove trailing punctuation
+        value = value.rstrip('.,!?;: ')
+        
+        return value.strip()
+    
+    def _convert_type(self, value: str, arg_type: str) -> any:
+        """
+        Convert value to appropriate type.
+        
+        Args:
+            value: String value
+            arg_type: Target type
+            
+        Returns:
+            Converted value
+        """
+        if not value:
+            return ""
+        
+        arg_type_lower = str(arg_type).lower()
+        
+        # Handle numeric types
+        if 'float' in arg_type_lower or 'number' in arg_type_lower:
+            # Extract number from value
+            match = re.search(r'-?\d+\.?\d*', value)
+            if match:
+                try:
+                    return float(match.group())
+                except:
+                    pass
+        
+        if 'int' in arg_type_lower:
+            match = re.search(r'-?\d+', value)
+            if match:
+                try:
+                    return int(match.group())
+                except:
+                    pass
+        
+        # Handle boolean
+        if 'bool' in arg_type_lower:
+            value_lower = value.lower()
+            if value_lower in ['true', 'yes', '1']:
+                return True
+            if value_lower in ['false', 'no', '0']:
+                return False
+        
+        # Default: return as string
+        return value
 
     def decode(self) -> List[str]:
         """Generate function calls with constrained decoding.
@@ -319,18 +555,6 @@ class Decoder:
             # Append to sequences
             input_ids.append(next_token_id)
             generated_ids.append(next_token_id)
-
-            # Debug output for first few iterations
-            # if iteration <= 10:
-            #     token_str = self.tokenizer.decode([next_token_id])
-            #     print(
-            #         f"Iter {iteration}: Token {next_token_id} = "
-            #         f"'{token_str}'"
-            #     )
-            #     print(
-            #         f"  Generated: "
-            #         f"{self.decode_token_ids(generated_ids)}"
-            #     )
 
             # Check if generated sequence is a substring of exactly one
             is_unique_match, matched_function = self.check_substring_match(
