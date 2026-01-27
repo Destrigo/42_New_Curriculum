@@ -1,0 +1,15 @@
+[project]
+name = "call-me-maybe"
+version = "0.1.0"
+description = "Function calling with LLMs"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24.0",
+    "pydantic>=2.0.0",
+    "transformers>=4.30.0",
+    "huggingface-hub>=0.16.0",
+    "torch>=2.0.0",
+]
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cpu"
