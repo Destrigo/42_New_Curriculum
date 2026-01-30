@@ -22,7 +22,7 @@ if __name__ == "__main__":
                 "args": func_obj.get("args", {})
             }
             outputs.append(final_obj)
-        with open(sys.argv[6], "w") as f:
+        with open(sys.argv[6], "x") as f:
             json.dump(outputs, f, indent=2)
     except Exception as e:
         print(e)

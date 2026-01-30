@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/27 21:31:53 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/30 11:00:57 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,30 +80,33 @@ static int	helper_one(t_struct_coder *coder, const long left, const long right)
 	return (1);
 }
 
-static int	helper_two(t_struct_coder *coder, const long left, const long right)
+static int	helper_two(t_struct_coder *coder,
+	const long left,
+	const long right,
+	t_struct_input *data)
 {
-	enqueue_coder(coder->data_input, coder);
+	enqueue_coder(data, coder);
 	while (1)
 	{
 		dongle_checker(coder);
-		if (coder->data_input->flag_stop == 1)
+		if (data->flag_stop == 1)
 		{
-			dequeue_coder(coder->data_input, coder);
-			pthread_mutex_unlock(&coder->data_input->monitor_mutex);
+			dequeue_coder(data, coder);
+			pthread_mutex_unlock(&data->monitor_mutex);
 			return (-1);
 		}
 		if (helper_one(coder, left, right) == 1)
 			break ;
 	}
 	if (++coder->counter_compiled
-		== coder->data_input->number_of_compiles_required)
+		== data->number_of_compiles_required)
 		return (coder->flag_finished = 1, -1);
-	if (coder->data_input->flag_stop == 1)
+	if (data->flag_stop == 1)
 		return (-1);
-	debug(coder->data_input, coder->id, get_timestamp(coder->data_input), coder->data_input->time_to_debug);
-	if (coder->data_input->flag_stop == 1)
+	debug(data, coder->id, get_timestamp(data), data->time_to_debug);
+	if (data->flag_stop == 1)
 		return (-1);
-	refactor(coder->data_input, coder->id, get_timestamp(coder->data_input), coder->data_input->time_to_refactor);
+	refactor(data, coder->id, get_timestamp(data), data->time_to_refactor);
 	return (0);
 }
 
@@ -126,7 +129,7 @@ void	*routine(void *arg)
 			pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 			break ;
 		}
-		if (helper_two(coder, left, right) == -1)
+		if (helper_two(coder, left, right, coder->data_input) == -1)
 			break ;
 	}
 	return (NULL);
