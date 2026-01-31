@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 14:21:30 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 14:25:04 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,6 @@ void	compile(t_struct_input *data, int id, long timeshot, int sleepms)
 	target_time = timestamp() + sleepms;
 	while (timestamp() < target_time && flag_check_mutex(data) == 0)
 		usleep(1000);
-	pthread_mutex_lock(&data->monitor_mutex);
-	data->arr[id - 1]->counter_compiled += 1;
-	pthread_mutex_unlock(&data->monitor_mutex);
 }
 
 void	debug(t_struct_input *data, int id, long timeshot, int sleepms)
