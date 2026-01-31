@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 13:37:31 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:47:12 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,6 @@ static int	helper_one(t_struct_coder *coder, const long left, const long right)
 	pthread_mutex_unlock(&coder->data_input->usb_array[left]);
 	pthread_mutex_unlock(&coder->data_input->usb_array[right]);
 	pthread_cond_broadcast(&coder->data_input->monitor_cond);
-	// pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 	return (1);
 }
 
@@ -89,14 +88,16 @@ static int	helper_two(t_struct_coder *coder,
 	{
 		dongle_checker(coder);
 		if (flag_check_mutex(data) == 1)
+		{
+			pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 			return (dequeue_coder(data, coder), -1);
+		}
 		if (helper_one(coder, left, right) == 1)
 			break ;
 	}
-	// pthread_mutex_lock(&coder->data_input->monitor_mutex);
 	if (++coder->counter_compiled
 		== data->number_of_compiles_required)
-		return (coder->flag_finished = 1, pthread_mutex_unlock(&coder->data_input->monitor_mutex), -1);
+		coder->flag_finished = 1;
 	pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 	if (flag_check_mutex(data) == 1)
 		return (-1);

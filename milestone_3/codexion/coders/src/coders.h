@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 12:22:46 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:52:12 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,4 +101,6 @@ long			get_priority(t_struct_input *data, t_queue_entry *entry);
 void			swap_entries(t_queue_entry *a, t_queue_entry *b);
 int				flag_check_mutex(t_struct_input *data_input);
 void			flag_change_mutex(t_struct_input *data_input);
+void			execute_single_thread(t_struct_input *data_input);
+int				checker(t_struct_input *data);
 #endif

@@ -6,7 +6,7 @@
 #    By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/05 12:06:34 by mtaranti          #+#    #+#              #
-#    Updated: 2026/01/31 12:12:33 by mtaranti         ###   ########.fr        #
+#    Updated: 2026/01/31 13:52:58 by mtaranti         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,6 +23,7 @@ SRC = 	src/main.c				\
 		src/routine.c			\
 		src/mutex_helpers.c		\
 		src/queue_actions.c		\
+		src/threads.c			\
 		src/coders_actions.c
 OBJ = $(SRC:.c=.o)
 
