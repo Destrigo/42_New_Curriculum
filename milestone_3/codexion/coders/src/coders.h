@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 12:34:48 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 12:22:46 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ typedef struct s_struct_input
 	long					start_time;
 	struct s_struct_coder	**arr;
 	pthread_mutex_t			print_mutex;
+	pthread_mutex_t			flag_mutex;
 	pthread_mutex_t			*usb_array;
 	long					*usb_last_free_time;
 	pthread_mutex_t			monitor_mutex;
@@ -69,7 +70,6 @@ typedef struct s_struct_coder
 }	t_struct_coder;
 
 long			timestamp(void);
-long			now_ms(t_struct_coder *coder);
 int				is_fifo_or_edf(char *str);
 int				is_number(char *str);
 int				input_validation(int arg, char **argv);
@@ -99,4 +99,6 @@ int				has_higher_priority(t_struct_input *data,
 					t_queue_entry *a, t_queue_entry *b);
 long			get_priority(t_struct_input *data, t_queue_entry *entry);
 void			swap_entries(t_queue_entry *a, t_queue_entry *b);
+int				flag_check_mutex(t_struct_input *data_input);
+void			flag_change_mutex(t_struct_input *data_input);
 #endif

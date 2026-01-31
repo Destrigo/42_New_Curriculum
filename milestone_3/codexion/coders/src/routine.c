@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/30 11:00:57 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 12:20:06 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ static void	dongle_checker(t_struct_coder *coder)
 	struct timespec	timeout;
 	struct timeval	now;
 
-	while (!can_take_dongles(coder) && coder->data_input->flag_stop == 0)
+	while (!can_take_dongles(coder) && flag_check_mutex(coder->data_input) == 0)
 	{
 		gettimeofday(&now, NULL);
 		timeout.tv_sec = now.tv_sec;
@@ -89,7 +89,7 @@ static int	helper_two(t_struct_coder *coder,
 	while (1)
 	{
 		dongle_checker(coder);
-		if (data->flag_stop == 1)
+		if (flag_check_mutex(data) == 1)
 		{
 			dequeue_coder(data, coder);
 			pthread_mutex_unlock(&data->monitor_mutex);
@@ -101,10 +101,10 @@ static int	helper_two(t_struct_coder *coder,
 	if (++coder->counter_compiled
 		== data->number_of_compiles_required)
 		return (coder->flag_finished = 1, -1);
-	if (data->flag_stop == 1)
+	if (flag_check_mutex(data) == 1)
 		return (-1);
 	debug(data, coder->id, get_timestamp(data), data->time_to_debug);
-	if (data->flag_stop == 1)
+	if (flag_check_mutex(data) == 1)
 		return (-1);
 	refactor(data, coder->id, get_timestamp(data), data->time_to_refactor);
 	return (0);
@@ -121,10 +121,10 @@ void	*routine(void *arg)
 	coder = (t_struct_coder *)arg;
 	while (1)
 	{
-		if (coder->data_input->flag_stop == 1)
+		if (flag_check_mutex(coder->data_input) == 1)
 			break ;
 		pthread_mutex_lock(&coder->data_input->monitor_mutex);
-		if (coder->data_input->flag_stop == 1)
+		if (flag_check_mutex(coder->data_input) == 1)
 		{
 			pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 			break ;

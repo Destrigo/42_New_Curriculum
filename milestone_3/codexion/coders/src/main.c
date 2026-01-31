@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/13 13:17:21 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 12:18:41 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	execute_multithread(t_struct_input *data_input)
 	if (pthread_create(&monitor, NULL, &monitor_routine, data_input) != 0)
 		return ;
 	pthread_join(monitor, NULL);
-	data_input->flag_stop = 1;
+	flag_change_mutex(data_input);
 	pthread_cond_broadcast(&data_input->monitor_cond);
 	usleep(30000);
 	pthread_cond_broadcast(&data_input->monitor_cond);
@@ -63,13 +63,12 @@ void	execute_multithread(t_struct_input *data_input)
 
 static void	helper_five(t_struct_input *data, int i, int flag)
 {
-	if (data->flag_stop == 0)
+	if (flag_check_mutex(data) == 0)
 	{
-		data->flag_stop = 1;
+		flag_change_mutex(data);
 		pthread_mutex_lock(&data->print_mutex);
 		if (flag != 1)
 			printf("%ld %d burned out\n", get_timestamp(data), i + 1);
-		fflush(stdout);
 		pthread_mutex_unlock(&data->print_mutex);
 		pthread_cond_broadcast(&data->monitor_cond);
 	}
@@ -87,7 +86,7 @@ void	*monitor_routine(void *arg)
 		counter = 0;
 		i = -1;
 		time = timestamp();
-		if (data->flag_stop == 1)
+		if (flag_check_mutex((t_struct_input *)data) == 1)
 			return (NULL);
 		while (++i < data->number_of_coders)
 		{

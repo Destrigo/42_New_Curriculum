@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/27 21:03:12 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 12:25:33 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 		data->usb_last_free_time[i] = 0;
 	if (helper_lostcount(data) == -1)
 		return (free(data->usb_array), free(data->usb_last_free_time), -1);
+	pthread_mutex_init(&data->flag_mutex, NULL);
 	return (0);
 }
 

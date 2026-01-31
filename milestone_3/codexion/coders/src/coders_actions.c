@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/27 21:38:58 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 12:20:43 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	compile(t_struct_input *data, int id, long timeshot, int sleepms)
 	safe_printf(data, id, timeshot, "is compiling\n");
 	data->arr[id - 1]->last_action_time = timestamp();
 	target_time = timestamp() + sleepms;
-	while (timestamp() < target_time && data->flag_stop == 0)
+	while (timestamp() < target_time && flag_check_mutex(data) == 0)
 		usleep(1000);
 }
 
@@ -29,7 +29,7 @@ void	debug(t_struct_input *data, int id, long timeshot, int sleepms)
 
 	safe_printf(data, id, timeshot, "is debugging\n");
 	target_time = timestamp() + sleepms;
-	while (timestamp() < target_time && data->flag_stop == 0)
+	while (timestamp() < target_time && flag_check_mutex(data) == 0)
 		usleep(1000);
 }
 
@@ -39,14 +39,14 @@ void	refactor(t_struct_input *data, int id, long timeshot, int sleepms)
 
 	safe_printf(data, id, timeshot, "is refactoring\n");
 	target_time = timestamp() + sleepms;
-	while (timestamp() < target_time && data->flag_stop == 0)
+	while (timestamp() < target_time && flag_check_mutex(data) == 0)
 		usleep(1000);
 }
 
 void	safe_printf(t_struct_input *data, int id, long timeshot, char *str)
 {
 	pthread_mutex_lock(&data->print_mutex);
-	if (data->flag_stop == 0)
+	if (flag_check_mutex(data) == 0)
 		printf("%ld %d %s", timeshot, id, str);
 	pthread_mutex_unlock(&data->print_mutex);
 }
