@@ -6,11 +6,30 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 13:00:30 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:35:32 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "coders.h"
+
+static void execute_single_thread(t_struct_input *data_input)
+{
+	pthread_t	monitor;
+
+	if (pthread_create(&(data_input->arr[0]->thread),
+			NULL, &routine, data_input->arr[0]) != 0)
+		return ;
+	if (pthread_create(&monitor, NULL, &monitor_routine, data_input) != 0)
+		return ;
+	pthread_join(monitor, NULL);
+	flag_change_mutex(data_input);
+	pthread_cond_broadcast(&data_input->monitor_cond);
+	usleep(30000);
+	pthread_cond_broadcast(&data_input->monitor_cond);
+	pthread_join(data_input->arr[0]->thread, NULL);
+	free_all_one(data_input);
+	free_all_two(data_input);
+}
 
 int	main(int arg, char **argv)
 {
@@ -23,7 +42,10 @@ int	main(int arg, char **argv)
 	data_input = parse_input(argv);
 	if (!data_input)
 		return (write(2, "Error allocating memory", 23), 1);
-	execute_multithread(data_input);
+	if (data_input->number_of_coders == 1)
+		return (execute_single_thread(data_input), 0);
+	else
+		execute_multithread(data_input);
 	while (i < data_input->number_of_coders)
 	{
 		pthread_mutex_destroy(&(data_input->usb_array[i]));
@@ -70,7 +92,9 @@ static void	helper_five(t_struct_input *data, int i, int flag)
 		if (flag != 1)
 			printf("%ld %d burned out\n", get_timestamp(data), i + 1);
 		pthread_mutex_unlock(&data->print_mutex);
+		pthread_mutex_lock(&data->monitor_mutex);
 		pthread_cond_broadcast(&data->monitor_cond);
+		pthread_mutex_unlock(&data->monitor_mutex);
 	}
 }
 
@@ -95,7 +119,7 @@ void	*monitor_routine(void *arg)
 				counter++;
 			time = timestamp() - data->arr[i]->last_action_time;
 			if (time >= data->time_to_burnout)
-				return (helper_five((t_struct_input *)data, i, 0), NULL);
+				return (pthread_mutex_unlock((pthread_mutex_t *)&data->monitor_mutex), helper_five((t_struct_input *)data, i, 0), NULL);
 		}
 		pthread_mutex_unlock((pthread_mutex_t *)&data->monitor_mutex);
 		if (counter == data->number_of_coders)
