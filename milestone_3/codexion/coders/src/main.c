@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 12:18:41 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:00:30 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,7 @@ void	*monitor_routine(void *arg)
 		time = timestamp();
 		if (flag_check_mutex((t_struct_input *)data) == 1)
 			return (NULL);
+		pthread_mutex_lock((pthread_mutex_t *)&data->monitor_mutex);
 		while (++i < data->number_of_coders)
 		{
 			if (data->arr[i]->flag_finished == 1)
@@ -96,6 +97,7 @@ void	*monitor_routine(void *arg)
 			if (time >= data->time_to_burnout)
 				return (helper_five((t_struct_input *)data, i, 0), NULL);
 		}
+		pthread_mutex_unlock((pthread_mutex_t *)&data->monitor_mutex);
 		if (counter == data->number_of_coders)
 			return (helper_five((t_struct_input *)data, i, 1), NULL);
 		usleep(1);

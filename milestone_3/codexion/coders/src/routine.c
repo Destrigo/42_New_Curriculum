@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 12:20:06 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:13:14 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,6 @@ static int	helper_one(t_struct_coder *coder, const long left, const long right)
 	{
 		pthread_mutex_lock(&coder->data_input->monitor_mutex);
 		enqueue_coder(coder->data_input, coder);
-		pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 		return (0);
 	}
 	safe_printf(coder->data_input,
@@ -90,17 +89,15 @@ static int	helper_two(t_struct_coder *coder,
 	{
 		dongle_checker(coder);
 		if (flag_check_mutex(data) == 1)
-		{
-			dequeue_coder(data, coder);
-			pthread_mutex_unlock(&data->monitor_mutex);
-			return (-1);
-		}
+			return (dequeue_coder(data, coder), -1);
 		if (helper_one(coder, left, right) == 1)
 			break ;
 	}
+	pthread_mutex_lock(&coder->data_input->monitor_mutex);
 	if (++coder->counter_compiled
 		== data->number_of_compiles_required)
-		return (coder->flag_finished = 1, -1);
+		return (coder->flag_finished = 1, pthread_mutex_unlock(&coder->data_input->monitor_mutex), -1);
+	pthread_mutex_unlock(&coder->data_input->monitor_mutex);
 	if (flag_check_mutex(data) == 1)
 		return (-1);
 	debug(data, coder->id, get_timestamp(data), data->time_to_debug);
