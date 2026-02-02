@@ -1,18 +1,10 @@
-# ==============================
-# Project configuration
-# ==============================
-
 PYTHON := uv run python
 SRC := src
 INPUT_DIR := data/input
 OUTPUT_DIR := data/output
 INPUT_PROMPTS := $(INPUT_DIR)/function_calling_tests.json
-INPUT_FUNCS := $(INPUT_DIR)/function_definition.json
-OUTPUT := $(OUTPUT_DIR)/results.json
-
-# ==============================
-# Default target
-# ==============================
+INPUT_FUNCS := $(INPUT_DIR)/functions_definition.json
+OUTPUT := $(OUTPUT_DIR)/function_definition_results.json
 
 .PHONY: help
 help:
@@ -24,17 +16,9 @@ help:
 	@echo "  make lint          Run flake8 and mypy with required flags"
 	@echo "  make lint-strict   Run flake8 and mypy with strict flags (optional)"
 
-# ==============================
-# Environment setup
-# ==============================
-
 .PHONY: install
 install:
 	uv sync
-
-# ==============================
-# Run pipeline
-# ==============================
 
 .PHONY: run
 run:
@@ -43,10 +27,6 @@ run:
 		--input $(INPUT_FUNCS) \
 		--output $(OUTPUT)
 
-# ==============================
-# Debug mode
-# ==============================
-
 .PHONY: debug
 debug:
 	$(PYTHON) -m pdb -m $(SRC) \
@@ -54,19 +34,11 @@ debug:
 		--input $(INPUT_FUNCS) \
 		--output $(OUTPUT)
 
-# ==============================
-# Code quality
-# ==============================
-
 .PHONY: lint
 lint:
 	python3 -m flake8 src/*
 	python3 -m mypy src/*.py --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
-
-# ==============================
-# Cleanup
-# ==============================
 
 .PHONY: clean
 clean:

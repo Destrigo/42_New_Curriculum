@@ -1,0 +1,109 @@
+[
+  {
+    "prompt": "What is the square root of 16?",
+    "fn_name": "fn_get_square_root",
+    "args": {
+      "a": 16.0
+    }
+  },
+  {
+    "prompt": "Reverse the string 'hello'",
+    "fn_name": "fn_reverse_string",
+    "args": {
+      "s": "hello"
+    }
+  },
+  {
+    "prompt": "Reverse the string 'world'",
+    "fn_name": "fn_reverse_string",
+    "args": {
+      "s": "world"
+    }
+  },
+  {
+    "prompt": "Substitute the digits in the string 'Hello 34 I'm 233 years old' with 'NUMBERS'",
+    "fn_name": "fn_substitute_string_with_regex",
+    "args": {
+      "source_string": "Hello 34 I",
+      "regex": " with "
+    }
+  },
+  {
+    "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
+    "fn_name": "fn_substitute_string_with_regex",
+    "args": {
+      "regex": "[aeiouAEIOU]",
+      "source_string": "Programming is fun",
+      "replacement": "*"
+    }
+  },
+  {
+    "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'",
+    "fn_name": "fn_substitute_string_with_regex",
+    "args": {
+      "regex": "cat",
+      "replacement": "dog",
+      "source_string": "The cat sat on the mat with another cat"
+    }
+  },
+  {
+    "prompt": "What is the sum of 2 and 3?",
+    "fn_name": "fn_add_numbers",
+    "args": {
+      "a": 2.0,
+      "b": 3.0
+    }
+  },
+  {
+    "prompt": "What is the sum of 265 and 345?",
+    "fn_name": "fn_add_numbers",
+    "args": {
+      "a": 265.0,
+      "b": 345.0
+    }
+  },
+  {
+    "prompt": "Is 4 an even number?",
+    "fn_name": "fn_is_even",
+    "args": {
+      "n": 4
+    }
+  },
+  {
+    "prompt": "Is 7 an even number?",
+    "fn_name": "fn_is_even",
+    "args": {
+      "n": 7
+    }
+  },
+  {
+    "prompt": "What is the product of 3 and 5?",
+    "fn_name": "fn_multiply_numbers",
+    "args": {
+      "a": 3.0,
+      "b": 5.0
+    }
+  },
+  {
+    "prompt": "What is the product of 12 and 4?",
+    "fn_name": "fn_multiply_numbers",
+    "args": {
+      "a": 12.0,
+      "b": 4.0
+    }
+  },
+  {
+    "prompt": "Greet shrek",
+    "fn_name": "fn_greet",
+    "args": {
+      "name": "shrek"
+    }
+  },
+  {
+    "prompt": "Greet john",
+    "fn_name": "fn_greet",
+    "args": {
+      "name": "john"
+    }
+  }
+]

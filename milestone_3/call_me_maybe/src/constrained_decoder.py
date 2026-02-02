@@ -1,9 +1,18 @@
+"""
+Constrained Decoder con estrazione argomenti via Constrained Decoding.
+
+MODIFICHE rispetto all'originale:
+- Rimossi tutti i metodi _extract_*_args basati su regex
+- Aggiunto ConstrainedArgumentExtractor
+- _refactor_args ora usa constrained decoding
+"""
+
 from typing import Any, List, Dict
 import json
 import math
-import re
 from llm_sdk import Small_LLM_Model
 from .tokenizer import Tokenizer
+from .constrained_arg_extractor import ConstrainedArgumentExtractor
 
 
 class Decoder:
@@ -33,7 +42,15 @@ class Decoder:
         self.tokenizer = Tokenizer(self.vocabulary)
         self.matrix = self.build_allowed_token_matrix(functions)
 
-        # Improved prompt for better function selection
+        # ═══════════════════════════════════════════════════════════════
+        # NUOVO: Inizializza l'estrattore di argomenti con constrained decoding
+        # ═══════════════════════════════════════════════════════════════
+        self.arg_extractor = ConstrainedArgumentExtractor(
+            model=self.model,
+            tokenizer=self.tokenizer,
+            vocabulary=self.vocabulary
+        )
+
         self.general_prompt = (
             "Select the most appropriate function based on the task. "
             "Pay close attention to keywords: "
@@ -95,8 +112,15 @@ class Decoder:
         """Convert token IDs to human-readable string."""
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # METODO MODIFICATO: Usa constrained decoding invece di regex
+    # ═══════════════════════════════════════════════════════════════════════
     def _refactor_args(self, func_obj: dict, prompt: str) -> str:
-        """Fill function arguments by extracting values from prompt."""
+        """
+        Fill function arguments using CONSTRAINED DECODING.
+        L'LLM genera i valori token-per-token, guidato dallo schema.
+        Niente più regex!
+        """
         arg_names = func_obj.get("args_names", [])
         arg_types = func_obj.get("args_types", {})
         fn_name = func_obj.get("fn_name", "")
@@ -105,263 +129,21 @@ class Decoder:
             func_obj["args"] = {}
             return json.dumps(func_obj)
 
-        args_dict: dict[Any, Any] = {}
-        # Use function-specific extraction logic
-        if fn_name == "fn_substitute_string_with_regex":
-            args_dict = self._extract_substitute_args(prompt, arg_names)
-        elif fn_name == "fn_add_numbers" or fn_name == "fn_multiply_numbers":
-            args_dict = self._extract_binary_op_args(prompt,
-                                                     arg_names, arg_types)
-        elif fn_name == "fn_is_even":
-            args_dict = self._extract_is_even_args(prompt,
-                                                   arg_names, arg_types)
-        elif fn_name == "fn_greet":
-            args_dict = self._extract_greet_args(prompt, arg_names)
-        elif fn_name == "fn_reverse_string":
-            args_dict = self._extract_reverse_args(prompt, arg_names)
-        elif fn_name == "fn_get_square_root":
-            args_dict = self._extract_sqrt_args(prompt, arg_names, arg_types)
-        else:
-            args_dict = self._extract_generic_args(prompt,
-                                                   arg_names, arg_types)
+        # Usa constrained decoding per estrarre gli argomenti
+        args_dict = self.arg_extractor.extract_arguments(
+            prompt=prompt,
+            fn_name=fn_name,
+            arg_names=arg_names,
+            arg_types=arg_types
+        )
+
+        # Log per debug
+        print(f"[Constrained Extraction] {fn_name}")
         for arg_name, value in args_dict.items():
-            print(f"  {arg_name}: {value}")
+            print(f"  {arg_name}: {value} ({type(value).__name__})")
 
         func_obj["args"] = args_dict
-        result = json.dumps(func_obj)
-        return result
-
-    def _extract_substitute_args(
-        self,
-        prompt: str,
-        arg_names: List[str]
-    ) -> Dict[str, str]:
-        """Extract args for fn_substitute_string_with_regex
-        with semantic interpretation."""
-        args = {}
-
-        # Pattern 1: "Substitute X with Y in 'Z'"
-        match = re.search(
-            (r"(?:substitute|replace)\s+(?:the\s+)?(?:word\s+)?['\"]?"
-             r"(\w+)['\"]?\s+(?:with|by)\s+['\"]?(\w+)['\"]?\s+in\s"
-             r"+['\"]([^'\"]+)['\"]"),
-            prompt,
-            re.IGNORECASE
-        )
-        if match:
-            args["regex"] = match.group(1)
-            args["replacement"] = match.group(2)
-            args["source_string"] = match.group(3)
-            return self._interpret_semantic_values(args)
-
-        # Pattern 2: "Replace X in 'Z' with Y"
-        match = re.search(
-            (r"(?:replace|substitute)\s+(?:all\s+)?['\"]?(\w+)"
-             r"['\"]?\s+in\s+['\"]([^'\"]+)['\"]\s+(?:with|by)\s"
-             r"+['\"]?(\w+)['\"]?"),
-            prompt,
-            re.IGNORECASE
-        )
-        if match:
-            args["regex"] = match.group(1)
-            args["source_string"] = match.group(2)
-            args["replacement"] = match.group(3)
-            return self._interpret_semantic_values(args)
-
-        # Pattern 3: "Substitute X in the string 'Z' with 'Y'"
-        match = re.search(
-            (r"(?:substitute|replace)\s+(?:the\s+)"
-             r"?(\w+)\s+in\s+(?:the\s+string\s+)?['\"]([^'\"]+)"
-             r"['\"]\s+(?:with|by)\s+['\"]([^'\"]+)['\"]"),
-            prompt,
-            re.IGNORECASE
-        )
-        if match:
-            args["regex"] = match.group(1)
-            args["source_string"] = match.group(2)
-            args["replacement"] = match.group(3)
-            return self._interpret_semantic_values(args)
-
-        # Fallback: extract quoted strings in order
-        quoted = re.findall(r"['\"]([^'\"]+)['\"]", prompt)
-        if len(quoted) >= 1:
-            # Try to identify which is source_string
-            # (usually the longest or contains the context)
-            if len(quoted) >= 2:
-                # Heuristic: source_string is usually longer
-                sorted_by_length = sorted(quoted, key=len, reverse=True)
-                args["source_string"] = sorted_by_length[0]
-
-                # Other quoted strings might be regex or replacement
-                remaining = [q for q in quoted if q != args["source_string"]]
-                if len(remaining) >= 1:
-                    args["regex"] = remaining[0]
-                if len(remaining) >= 2:
-                    args["replacement"] = remaining[1]
-
-        return self._interpret_semantic_values(args)
-
-    def _interpret_semantic_values(self,
-                                   args: Dict[str, str]) -> Dict[str, str]:
-        """Convert semantic descriptions to actual
-        regex patterns and replacements."""
-        if 'regex' in args:
-            regex_value = args['regex'].lower()
-            # Convert semantic descriptions to regex patterns
-            if regex_value in ['vowels', 'vowel']:
-                args['regex'] = '[aeiouAEIOU]'
-            elif regex_value in ['digits', 'digit', 'numbers', 'number']:
-                args['regex'] = r'\d+'
-            elif regex_value in ['consonants', 'consonant']:
-                args['regex'] = '[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]'
-            elif regex_value in ['spaces', 'space', 'whitespace']:
-                args['regex'] = r'\s+'
-            # Otherwise keep as-is (it's probably a literal word to replace)
-        if 'replacement' in args:
-            repl_value = args['replacement'].lower()
-            # Convert semantic descriptions to actual replacements
-            if repl_value in ['asterisks', 'asterisk', 'stars', 'star']:
-                args['replacement'] = '*'
-            elif repl_value in ['numbers', 'number']:
-                args['replacement'] = 'NUMBERS'
-            elif repl_value in ['underscore', 'underscores']:
-                args['replacement'] = '_'
-            elif repl_value in ['nothing', 'empty', 'blank']:
-                args['replacement'] = ''
-            # Otherwise keep as-is
-        return args
-
-    def _extract_binary_op_args(
-        self,
-        prompt: str,
-        arg_names: List[str],
-        arg_types: Dict[str, str]
-    ) -> Dict[str, float]:
-        """Extract args for binary operations (add, multiply)."""
-        args = {}
-        # Pattern: "X of A and B"
-        match = re.search(
-            (r"(?:sum|product|difference|quotient)\s"
-             r"+of\s+(\d+\.?\d*)\s+and\s+(\d+\.?\d*)"),
-            prompt,
-            re.IGNORECASE
-        )
-        if match:
-            args[arg_names[0]] = float(match.group(1))
-            args[arg_names[1]] = float(match.group(2))
-            return args
-        # Fallback: extract all numbers
-        numbers = re.findall(r'\b\d+\.?\d*\b', prompt)
-        if len(numbers) >= 2:
-            args[arg_names[0]] = float(numbers[0])
-            args[arg_names[1]] = float(numbers[1])
-        return args
-
-    def _extract_is_even_args(
-        self,
-        prompt: str,
-        arg_names: List[str],
-        arg_types: Dict[str, str]
-    ) -> Dict[str, int]:
-        """Extract args for fn_is_even."""
-        args = {}
-        # Pattern: "Is X an even/odd number"
-        match = re.search(r"is\s+(\d+)\s+an?\s+(?:even|odd)",
-                          prompt, re.IGNORECASE)
-        if match:
-            args[arg_names[0]] = int(match.group(1))
-            return args
-        # Fallback: extract first number
-        numbers = re.findall(r'\b\d+\b', prompt)
-        if numbers:
-            args[arg_names[0]] = int(numbers[0])
-        return args
-
-    def _extract_greet_args(
-        self,
-        prompt: str,
-        arg_names: List[str]
-    ) -> Dict[str, str]:
-        """Extract args for fn_greet."""
-        args = {}
-        # Pattern: "Greet X"
-        match = re.search(r"greet\s+(\w+)", prompt, re.IGNORECASE)
-        if match:
-            args[arg_names[0]] = match.group(1)
-            return args
-        # Fallback: last word
-        words = prompt.split()
-        if words:
-            args[arg_names[0]] = words[-1].strip('.,!?')
-        return args
-
-    def _extract_reverse_args(
-        self,
-        prompt: str,
-        arg_names: List[str]
-    ) -> Dict[str, str]:
-        """Extract args for fn_reverse_string."""
-        args = {}
-        # Pattern: "Reverse 'X'" or "Reverse the string 'X'"
-        match = re.search(r"reverse\s+(?:the\s+)?(?:string\s+)?"
-                          r"['\"]([^'\"]+)['\"]", prompt, re.IGNORECASE)
-        if match:
-            args[arg_names[0]] = match.group(1)
-            return args
-        # Fallback: extract quoted string
-        quoted = re.findall(r"['\"]([^'\"]+)['\"]", prompt)
-        if quoted:
-            args[arg_names[0]] = quoted[0]
-        return args
-
-    def _extract_sqrt_args(
-        self,
-        prompt: str,
-        arg_names: List[str],
-        arg_types: Dict[str, str]
-    ) -> Dict[str, float]:
-        """Extract args for fn_get_square_root."""
-        args = {}
-        # Pattern: "square root of X"
-        match = re.search(r"square\s+root\s+of\s+(\d+\.?\d*)",
-                          prompt, re.IGNORECASE)
-        if match:
-            args[arg_names[0]] = float(match.group(1))
-            return args
-        # Fallback: extract number
-        numbers = re.findall(r'\b\d+\.?\d*\b', prompt)
-        if numbers:
-            args[arg_names[0]] = float(numbers[0])
-        return args
-
-    def _extract_generic_args(
-        self,
-        prompt: str,
-        arg_names: List[str],
-        arg_types: Dict[str, str]
-    ) -> Dict[str, Any]:
-        """Generic extraction for any function."""
-        args: Dict[str, Any] = {}
-        quoted_strings = re.findall(r"['\"]([^'\"]+)['\"]", prompt)
-        numbers = re.findall(r'\b\d+\.?\d*\b', prompt)
-        string_idx = 0
-        number_idx = 0
-        for arg_name in arg_names:
-            arg_type = arg_types.get(arg_name, "str")
-            arg_type_lower = str(arg_type).lower()
-            if 'int' in arg_type_lower:
-                if number_idx < len(numbers):
-                    args[arg_name] = int(numbers[number_idx])
-                    number_idx += 1
-            elif 'float' in arg_type_lower:
-                if number_idx < len(numbers):
-                    args[arg_name] = float(numbers[number_idx])
-                    number_idx += 1
-            else:
-                if string_idx < len(quoted_strings):
-                    args[arg_name] = quoted_strings[string_idx]
-                    string_idx += 1
-        return args
+        return json.dumps(func_obj)
 
     def decode(self) -> List[str]:
         """Generate function calls with constrained decoding."""
@@ -369,7 +151,6 @@ class Decoder:
 
         for prompt in self.prompts:
             output = self._decode_single_prompt(prompt)
-            # Validate and correct function selection if needed
             func_obj = json.loads(output)
             func_obj = self._validate_function_selection(func_obj, prompt)
             output = json.dumps(func_obj)
@@ -384,10 +165,8 @@ class Decoder:
         fn_name = func_obj.get("fn_name", "")
         prompt_lower = prompt.lower()
 
-        # Check for operation keywords
         if 'sum' in prompt_lower or 'add' in prompt_lower:
             if fn_name != 'fn_add_numbers':
-                # Find the correct function
                 for func_str in self.functions:
                     if '"fn_name":"fn_add_numbers"' in func_str:
                         return json.loads(func_str)
@@ -398,7 +177,6 @@ class Decoder:
                     if '"fn_name":"fn_multiply_numbers"' in func_str:
                         return json.loads(func_str)
 
-        # Check if should be substitute but selected reverse
         if ('substitute' in prompt_lower or 'replace' in prompt_lower):
             if fn_name == 'fn_reverse_string':
                 for func_str in self.functions:
@@ -441,10 +219,6 @@ class Decoder:
                     f"Allowed IDs: {allowed_ids}"
                 )
             next_token_id = masked_logits.index(max_logit)
-            # print(
-            #     f"Next token ID: {next_token_id} "
-            #     f"('{self.tokenizer.decode([next_token_id])}')"
-            # )
             input_ids.append(next_token_id)
             generated_ids.append(next_token_id)
 
@@ -453,7 +227,6 @@ class Decoder:
             if is_unique_match:
                 flag_created = True
                 str_from_tokens = self.decode_token_ids(matched_function)
-                # print(f"Matched function: {str_from_tokens}")
                 return str_from_tokens
 
             prefix_matches = [
