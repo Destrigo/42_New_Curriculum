@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/31 13:52:29 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 13:53:12 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/02/02 12:07:03 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,31 +20,37 @@ void	execute_single_thread(t_struct_input *data_input)
 			NULL, &routine, data_input->arr[0]) != 0)
 		return ;
 	if (pthread_create(&monitor, NULL, &monitor_routine, data_input) != 0)
+	{
+		flag_change_mutex(data_input);
+		pthread_cond_broadcast(&data_input->monitor_cond);
+		pthread_join(data_input->arr[0]->thread, NULL);
 		return ;
+	}
 	pthread_join(monitor, NULL);
 	flag_change_mutex(data_input);
 	pthread_cond_broadcast(&data_input->monitor_cond);
 	usleep(30000);
 	pthread_cond_broadcast(&data_input->monitor_cond);
 	pthread_join(data_input->arr[0]->thread, NULL);
-	free_all_one(data_input);
-	free_all_two(data_input);
 }
 
 void	execute_multithread(t_struct_input *data_input)
 {
 	pthread_t	monitor;
 	int			i;
+	int			created;
 
 	i = -1;
+	created = 0;
 	while (++i < data_input->number_of_coders)
 	{
 		if (pthread_create(&(data_input->arr[i]->thread),
 				NULL, &routine, data_input->arr[i]) != 0)
-			return ;
+			return (clean_threads(data_input, i));
+		created++;
 	}
 	if (pthread_create(&monitor, NULL, &monitor_routine, data_input) != 0)
-		return ;
+		return (clean_all_coders(data_input, i));
 	pthread_join(monitor, NULL);
 	flag_change_mutex(data_input);
 	pthread_cond_broadcast(&data_input->monitor_cond);

@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 14:05:05 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 13:52:12 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/02/02 12:09:19 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,4 +103,9 @@ int				flag_check_mutex(t_struct_input *data_input);
 void			flag_change_mutex(t_struct_input *data_input);
 void			execute_single_thread(t_struct_input *data_input);
 int				checker(t_struct_input *data);
+void			clean_threads(t_struct_input *data_input, int i);
+void			clean_all_coders(t_struct_input *data_input,
+					int i);
+void			mutex_destroyer(t_struct_input *data);
+
 #endif

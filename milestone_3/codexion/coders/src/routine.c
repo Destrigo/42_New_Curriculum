@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:42 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 13:47:12 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/02/02 11:09:43 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,9 @@ static int	helper_two(t_struct_coder *coder,
 	if (++coder->counter_compiled
 		== data->number_of_compiles_required)
 		coder->flag_finished = 1;
+	pthread_cond_broadcast(&data->monitor_cond);
 	pthread_mutex_unlock(&coder->data_input->monitor_mutex);
+	usleep(10);
 	if (flag_check_mutex(data) == 1)
 		return (-1);
 	debug(data, coder->id, get_timestamp(data), data->time_to_debug);

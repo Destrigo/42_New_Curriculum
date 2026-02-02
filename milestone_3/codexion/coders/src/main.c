@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/07 21:02:18 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 13:52:40 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/02/02 11:31:59 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ int	main(int arg, char **argv)
 	if (!data_input)
 		return (write(2, "Error allocating memory", 23), 1);
 	if (data_input->number_of_coders == 1)
-		return (execute_single_thread(data_input), 0);
+		execute_single_thread(data_input);
 	else
 		execute_multithread(data_input);
 	while (i < data_input->number_of_coders)
@@ -33,6 +33,7 @@ int	main(int arg, char **argv)
 		i++;
 	}
 	pthread_mutex_destroy(&data_input->print_mutex);
+	pthread_mutex_destroy(&data_input->flag_mutex);
 	pthread_mutex_destroy(&data_input->monitor_mutex);
 	pthread_cond_destroy(&data_input->monitor_cond);
 	free_all_one(data_input);

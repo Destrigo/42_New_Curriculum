@@ -6,7 +6,7 @@
 /*   By: mtaranti <mtaranti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 19:46:28 by mtaranti          #+#    #+#             */
-/*   Updated: 2026/01/31 12:25:33 by mtaranti         ###   ########.fr       */
+/*   Updated: 2026/02/02 12:10:21 by mtaranti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ t_struct_input	*parse_input(char **argv)
 
 static void	helper_three(t_struct_input *data, char **argv)
 {
+	data->number_of_coders = atoi(argv[1]);
+	data->start_time = timestamp();
 	data->time_to_burnout = atoi(argv[2]);
 	data->flag_stop = 0;
 	data->time_to_compile = atoi(argv[3]);
@@ -60,8 +62,6 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 	int	i;
 
 	i = -1;
-	data->number_of_coders = atoi(argv[1]);
-	data->start_time = timestamp();
 	helper_three(data, argv);
 	data->usb_array = malloc(sizeof(pthread_mutex_t) * data->number_of_coders);
 	if (!data->usb_array)
@@ -70,14 +70,16 @@ int	parse_datastruct(t_struct_input *data, char **argv)
 		pthread_mutex_init(&(data->usb_array[i]), NULL);
 	data->usb_last_free_time = malloc(sizeof(long) * data->number_of_coders);
 	if (!data->usb_last_free_time)
-		return (-1);
-	i = data->number_of_coders;
+	{
+		mutex_destroyer(data);
+		return (free(data->usb_array), -1);
+	}
 	while (--i >= 0)
 		data->usb_last_free_time[i] = 0;
 	if (helper_lostcount(data) == -1)
-		return (free(data->usb_array), free(data->usb_last_free_time), -1);
-	pthread_mutex_init(&data->flag_mutex, NULL);
-	return (0);
+		return (mutex_destroyer(data), free(data->usb_array),
+			free(data->usb_last_free_time), -1);
+	return (pthread_mutex_init(&data->flag_mutex, NULL), 0);
 }
 
 int	parse_coders(t_struct_input *data)
