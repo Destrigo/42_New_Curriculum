@@ -1,5 +1,5 @@
 import sys
-from .constrained_decoder_old import Decoder
+from .constrained_decoder import Decoder
 from .parser import Parser
 import json
 import time

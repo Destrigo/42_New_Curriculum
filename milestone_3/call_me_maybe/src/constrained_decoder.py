@@ -1,10 +1,9 @@
 """
 Constrained Decoder con estrazione argomenti via Constrained Decoding.
 
-MODIFICHE rispetto all'originale:
-- Rimossi tutti i metodi _extract_*_args basati su regex
-- Aggiunto ConstrainedArgumentExtractor
-- _refactor_args ora usa constrained decoding
+MODIFICHE:
+- Aggiunto ConstrainedArgumentExtractor per estrarre gli argomenti
+- _refactor_args ora usa constrained decoding invece di regex
 """
 
 from typing import Any, List, Dict
@@ -51,6 +50,7 @@ class Decoder:
             vocabulary=self.vocabulary
         )
 
+        # Improved prompt for better function selection
         self.general_prompt = (
             "Select the most appropriate function based on the task. "
             "Pay close attention to keywords: "
@@ -113,13 +113,15 @@ class Decoder:
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
     # ═══════════════════════════════════════════════════════════════════════
-    # METODO MODIFICATO: Usa constrained decoding invece di regex
+    # METODO MODIFICATO: Usa ConstrainedArgumentExtractor
     # ═══════════════════════════════════════════════════════════════════════
     def _refactor_args(self, func_obj: dict, prompt: str) -> str:
         """
         Fill function arguments using CONSTRAINED DECODING.
-        L'LLM genera i valori token-per-token, guidato dallo schema.
-        Niente più regex!
+        L'extractor:
+        1. Estrae CANDIDATI dal prompt
+        2. Usa CONSTRAINED DECODING per selezionare tra i candidati
+           (stesso principio della selezione delle funzioni)
         """
         arg_names = func_obj.get("args_names", [])
         arg_types = func_obj.get("args_types", {})
@@ -129,7 +131,7 @@ class Decoder:
             func_obj["args"] = {}
             return json.dumps(func_obj)
 
-        # Usa constrained decoding per estrarre gli argomenti
+        # Usa constrained argument extractor
         args_dict = self.arg_extractor.extract_arguments(
             prompt=prompt,
             fn_name=fn_name,
@@ -138,9 +140,8 @@ class Decoder:
         )
 
         # Log per debug
-        print(f"[Constrained Extraction] {fn_name}")
         for arg_name, value in args_dict.items():
-            print(f"  {arg_name}: {value} ({type(value).__name__})")
+            print(f"  {arg_name}: {value}")
 
         func_obj["args"] = args_dict
         return json.dumps(func_obj)
@@ -151,6 +152,7 @@ class Decoder:
 
         for prompt in self.prompts:
             output = self._decode_single_prompt(prompt)
+            # Validate and correct function selection if needed
             func_obj = json.loads(output)
             func_obj = self._validate_function_selection(func_obj, prompt)
             output = json.dumps(func_obj)
@@ -165,8 +167,10 @@ class Decoder:
         fn_name = func_obj.get("fn_name", "")
         prompt_lower = prompt.lower()
 
+        # Check for operation keywords
         if 'sum' in prompt_lower or 'add' in prompt_lower:
             if fn_name != 'fn_add_numbers':
+                # Find the correct function
                 for func_str in self.functions:
                     if '"fn_name":"fn_add_numbers"' in func_str:
                         return json.loads(func_str)
@@ -177,6 +181,7 @@ class Decoder:
                     if '"fn_name":"fn_multiply_numbers"' in func_str:
                         return json.loads(func_str)
 
+        # Check if should be substitute but selected reverse
         if ('substitute' in prompt_lower or 'replace' in prompt_lower):
             if fn_name == 'fn_reverse_string':
                 for func_str in self.functions:
