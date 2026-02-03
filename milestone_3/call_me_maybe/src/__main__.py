@@ -1,4 +1,6 @@
 import sys
+
+from pathlib import Path
 from .constrained_decoder import Decoder
 from .parser import Parser
 import json
@@ -22,13 +24,11 @@ if __name__ == "__main__":
                 "args": func_obj.get("args", {})
             }
             outputs.append(final_obj)
-        try:
-            f = open(sys.argv[6], "x")
+
+        path = Path(sys.argv[6])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(sys.argv[6], "w") as f:
             json.dump(outputs, f, indent=2)
-            f.close()
-        except FileExistsError:
-            with open(sys.argv[6], "w") as f:
-                json.dump(outputs, f, indent=2)
     except Exception as e:
         print(e)
     finally:

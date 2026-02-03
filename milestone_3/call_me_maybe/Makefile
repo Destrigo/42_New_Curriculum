@@ -3,7 +3,7 @@ SRC := src
 INPUT_DIR := data/input
 OUTPUT_DIR := data/output
 INPUT_PROMPTS := $(INPUT_DIR)/function_calling_tests.json
-INPUT_FUNCS := $(INPUT_DIR)/functions_definition.json
+INPUT_FUNCS := $(INPUT_DIR)/function_definition.json
 OUTPUT := $(OUTPUT_DIR)/function_definition_results.json
 
 .PHONY: help

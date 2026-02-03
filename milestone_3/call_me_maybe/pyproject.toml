@@ -9,6 +9,7 @@ dependencies = [
     "transformers>=4.30.0",
     "huggingface-hub>=0.16.0",
     "torch>=2.0.0",
+    "fire>=0.7.1",
 ]
 
 [[tool.uv.index]]
