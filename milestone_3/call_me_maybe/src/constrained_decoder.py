@@ -1,12 +1,4 @@
-"""
-Constrained Decoder con estrazione argomenti via Constrained Decoding.
-
-MODIFICHE:
-- Aggiunto ConstrainedArgumentExtractor per estrarre gli argomenti
-- _refactor_args ora usa constrained decoding invece di regex
-"""
-
-from typing import Any, List, Dict
+from typing import List, Dict
 import json
 import math
 from llm_sdk import Small_LLM_Model
@@ -41,9 +33,6 @@ class Decoder:
         self.tokenizer = Tokenizer(self.vocabulary)
         self.matrix = self.build_allowed_token_matrix(functions)
 
-        # ═══════════════════════════════════════════════════════════════
-        # NUOVO: Inizializza l'estrattore di argomenti con constrained decoding
-        # ═══════════════════════════════════════════════════════════════
         self.arg_extractor = ConstrainedArgumentExtractor(
             model=self.model,
             tokenizer=self.tokenizer,
@@ -112,16 +101,13 @@ class Decoder:
         """Convert token IDs to human-readable string."""
         return self.tokenizer.decode(token_ids, skip_special_tokens=True)
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # METODO MODIFICATO: Usa ConstrainedArgumentExtractor
-    # ═══════════════════════════════════════════════════════════════════════
     def _refactor_args(self, func_obj: dict, prompt: str) -> str:
         """
         Fill function arguments using CONSTRAINED DECODING.
-        L'extractor:
-        1. Estrae CANDIDATI dal prompt
-        2. Usa CONSTRAINED DECODING per selezionare tra i candidati
-           (stesso principio della selezione delle funzioni)
+        Extractor:
+        1. Extracts CANDIDATES from the prompt
+        2. Uses CONSTRAINED DECODING to select among candidates
+           (same principle as function selection)
         """
         arg_names = func_obj.get("args_names", [])
         arg_types = func_obj.get("args_types", {})
@@ -131,7 +117,7 @@ class Decoder:
             func_obj["args"] = {}
             return json.dumps(func_obj)
 
-        # Usa constrained argument extractor
+        # constrained argument extractor
         args_dict = self.arg_extractor.extract_arguments(
             prompt=prompt,
             fn_name=fn_name,
@@ -139,9 +125,9 @@ class Decoder:
             arg_types=arg_types
         )
 
-        # Log per debug
-        for arg_name, value in args_dict.items():
-            print(f"  {arg_name}: {value}")
+        # # Log for debug
+        # for arg_name, value in args_dict.items():
+        #     print(f"  {arg_name}: {value}")
 
         func_obj["args"] = args_dict
         return json.dumps(func_obj)
@@ -154,41 +140,42 @@ class Decoder:
             output = self._decode_single_prompt(prompt)
             # Validate and correct function selection if needed
             func_obj = json.loads(output)
-            func_obj = self._validate_function_selection(func_obj, prompt)
+            # func_obj = self._validate_function_selection(func_obj, prompt)
             output = json.dumps(func_obj)
             output = self._refactor_args(json.loads(output), prompt)
             outputs.append(output)
         return outputs
 
-    def _validate_function_selection(self,
-                                     func_obj: dict,
-                                     prompt: str) -> Any:
-        """Validate and correct function selection based on prompt keywords."""
-        fn_name = func_obj.get("fn_name", "")
-        prompt_lower = prompt.lower()
+    # def _validate_function_selection(self,
+    #                                  func_obj: dict,
+    #                                  prompt: str) -> Any:
+    #     """Validate and correct function selection based on
+    #       prompt keywords."""
+    #     fn_name = func_obj.get("fn_name", "")
+    #     prompt_lower = prompt.lower()
 
-        # Check for operation keywords
-        if 'sum' in prompt_lower or 'add' in prompt_lower:
-            if fn_name != 'fn_add_numbers':
-                # Find the correct function
-                for func_str in self.functions:
-                    if '"fn_name":"fn_add_numbers"' in func_str:
-                        return json.loads(func_str)
-        if ('multiply' in prompt_lower or
-           'product' in prompt_lower) and 'sum' not in prompt_lower:
-            if fn_name != 'fn_multiply_numbers':
-                for func_str in self.functions:
-                    if '"fn_name":"fn_multiply_numbers"' in func_str:
-                        return json.loads(func_str)
+        # # Check for operation keywords
+        # if 'sum' in prompt_lower or 'add' in prompt_lower:
+        #     if fn_name != 'fn_add_numbers':
+        #         # Find the correct function
+        #         for func_str in self.functions:
+        #             if '"fn_name":"fn_add_numbers"' in func_str:
+        #                 return json.loads(func_str)
+        # if ('multiply' in prompt_lower or
+        #    'product' in prompt_lower) and 'sum' not in prompt_lower:
+        #     if fn_name != 'fn_multiply_numbers':
+        #         for func_str in self.functions:
+        #             if '"fn_name":"fn_multiply_numbers"' in func_str:
+        #                 return json.loads(func_str)
 
-        # Check if should be substitute but selected reverse
-        if ('substitute' in prompt_lower or 'replace' in prompt_lower):
-            if fn_name == 'fn_reverse_string':
-                for func_str in self.functions:
-                    if ('"fn_name":"'
-                       'fn_substitute_string_with_regex"') in func_str:
-                        return json.loads(func_str)
-        return func_obj
+        # # Check if should be substitute but selected reverse
+        # if ('substitute' in prompt_lower or 'replace' in prompt_lower):
+        #     if fn_name == 'fn_reverse_string':
+        #         for func_str in self.functions:
+        #             if ('"fn_name":"'
+        #                'fn_substitute_string_with_regex"') in func_str:
+        #                 return json.loads(func_str)
+        # return func_obj
 
     def _decode_single_prompt(self, prompt: str) -> str:
         """Decode a single prompt to a function call."""

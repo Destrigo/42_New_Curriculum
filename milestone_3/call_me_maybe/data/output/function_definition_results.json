@@ -24,16 +24,16 @@
     "prompt": "Substitute the digits in the string 'Hello 34 I'm 233 years old' with 'NUMBERS'",
     "fn_name": "fn_substitute_string_with_regex",
     "args": {
-      "source_string": "Hello 34 I'm 233 years old",
+      "source_string": "hello 34 i'm 233 years old",
       "regex": "\\d+",
-      "replacement": "NUMBERS"
+      "replacement": "numbers"
     }
   },
   {
     "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
     "fn_name": "fn_substitute_string_with_regex",
     "args": {
-      "source_string": "Programming is fun",
+      "source_string": "programming is fun",
       "regex": "[aeiouAEIOU]",
       "replacement": "*"
     }
@@ -42,7 +42,7 @@
     "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'",
     "fn_name": "fn_substitute_string_with_regex",
     "args": {
-      "source_string": "The cat sat on the mat with another cat",
+      "source_string": "the cat sat on the mat with another cat",
       "regex": "cat",
       "replacement": "dog"
     }

@@ -1,0 +1,122 @@
+[
+  {
+    "fn_name": "fn_add_numbers",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "float", "b": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_multiply_numbers",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "float", "b": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_subtract_numbers",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "float", "b": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_divide_numbers",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "float", "b": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_get_square_root",
+    "args_names": ["a"],
+    "args_types": {"a": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_power",
+    "args_names": ["base", "exponent"],
+    "args_types": {"base": "float", "exponent": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_is_even",
+    "args_names": ["n"],
+    "args_types": {"n": "int"},
+    "return_type": "bool"
+  },
+  {
+    "fn_name": "fn_is_positive",
+    "args_names": ["n"],
+    "args_types": {"n": "float"},
+    "return_type": "bool"
+  },
+  {
+    "fn_name": "fn_reverse_string",
+    "args_names": ["s"],
+    "args_types": {"s": "str"},
+    "return_type": "str"
+  },
+  {
+    "fn_name": "fn_to_uppercase",
+    "args_names": ["s"],
+    "args_types": {"s": "str"},
+    "return_type": "str"
+  },
+  {
+    "fn_name": "fn_to_lowercase",
+    "args_names": ["s"],
+    "args_types": {"s": "str"},
+    "return_type": "str"
+  },
+  {
+    "fn_name": "fn_string_length",
+    "args_names": ["s"],
+    "args_types": {"s": "str"},
+    "return_type": "int"
+  },
+  {
+    "fn_name": "fn_greet",
+    "args_names": ["name"],
+    "args_types": {"name": "str"},
+    "return_type": "str"
+  },
+  {
+    "fn_name": "fn_substitute_string_with_regex",
+    "args_names": ["source_string", "regex", "replacement"],
+    "args_types": {"source_string": "str", "regex": "str", "replacement": "str"},
+    "return_type": "str"
+  },
+  {
+    "fn_name": "fn_concatenate_strings",
+    "args_names": ["s1", "s2"],
+    "args_types": {"s1": "str", "s2": "str"},
+    "return_type": "str"
+  },
+  {
+    "fn_name": "fn_factorial",
+    "args_names": ["n"],
+    "args_types": {"n": "int"},
+    "return_type": "int"
+  },
+  {
+    "fn_name": "fn_absolute_value",
+    "args_names": ["n"],
+    "args_types": {"n": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_max_of_two",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "float", "b": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_min_of_two",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "float", "b": "float"},
+    "return_type": "float"
+  },
+  {
+    "fn_name": "fn_modulo",
+    "args_names": ["a", "b"],
+    "args_types": {"a": "int", "b": "int"},
+    "return_type": "int"
+  }
+]
