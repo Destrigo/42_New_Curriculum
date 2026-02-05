@@ -80,10 +80,10 @@ class ConstrainedArgumentExtractor:
     ) -> List[str]:
         """Extracts candidates for an argument."""
         candidates = []
-        prompt = prompt.lower()
+        prompt_lower = prompt.lower()
 
         if "int" in arg_type or "float" in arg_type or "number" in arg_type:
-            numbers = re.findall(r'-?\d+\.?\d*', prompt)
+            numbers = re.findall(r'-?\d+\.?\d*', prompt_lower)
             candidates.extend([n for n in numbers if n not in used_candidates])
 
         elif "bool" in arg_type:
