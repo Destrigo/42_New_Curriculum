@@ -1,0 +1,51 @@
+# =============================================================================
+# Inception Project - Git Ignore Rules
+# =============================================================================
+
+# Secrets - NEVER commit these
+secrets/
+*.txt
+!README.md
+
+# Environment file with passwords (keep template)
+srcs/.env
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+logs/
+
+# Docker data (if accidentally in repo)
+data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# Build artifacts
+*.tar
+*.tar.gz
+*.zip

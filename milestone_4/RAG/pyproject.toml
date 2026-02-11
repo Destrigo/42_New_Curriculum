@@ -1,0 +1,40 @@
+[project]
+name = "rag-against-the-machine"
+version = "0.1.0"
+description = "RAG system for code and documentation search"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.0.0",
+    "fire>=0.5.0",
+    "tqdm>=4.65.0",
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+    "bm25s>=0.1.0",
+    "chonkie>=0.1.0",
+    "rank-bm25>=0.2.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503"]

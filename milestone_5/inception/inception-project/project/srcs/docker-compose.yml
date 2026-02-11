@@ -1,0 +1,122 @@
+version: '3.8'
+
+# =============================================================================
+# INCEPTION - Docker Compose Configuration
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # NGINX - Web Server & Reverse Proxy
+  # ---------------------------------------------------------------------------
+  nginx:
+    container_name: nginx
+    build:
+      context: ./requirements/nginx
+      dockerfile: Dockerfile
+    image: nginx:inception
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - inception_network
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    restart: always
+    env_file:
+      - .env
+
+  # ---------------------------------------------------------------------------
+  # WORDPRESS - PHP-FPM Application Server
+  # ---------------------------------------------------------------------------
+  wordpress:
+    container_name: wordpress
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    image: wordpress:inception
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - inception_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    restart: always
+    env_file:
+      - .env
+    secrets:
+      - db_password
+      - credentials
+    healthcheck:
+      test: ["CMD", "php-fpm83", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # MARIADB - Database Server
+  # ---------------------------------------------------------------------------
+  mariadb:
+    container_name: mariadb
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    image: mariadb:inception
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - inception_network
+    restart: always
+    env_file:
+      - .env
+    secrets:
+      - db_password
+      - db_root_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  inception_network:
+    name: inception_network
+    driver: bridge
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  wordpress:
+    name: inception_wordpress
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data/wordpress
+
+  mariadb:
+    name: inception_mariadb
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data/mariadb
+
+# =============================================================================
+# SECRETS
+# =============================================================================
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
