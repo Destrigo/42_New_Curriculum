@@ -2,7 +2,6 @@
 Evaluation metrics for RAG system.
 """
 
-from typing import List
 from src.models import (
     MinimalSource,
     StudentSearchResults,
