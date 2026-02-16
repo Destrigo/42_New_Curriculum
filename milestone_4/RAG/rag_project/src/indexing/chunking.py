@@ -111,8 +111,9 @@ class PythonChunker:
                 last_character_index=start_offset + end_pos,
                 chunk_type="code"
             ))
+            # overlap = 200  # 200 caratteri di overlap
+            # current_pos = max(current_pos, end_pos - overlap)
             current_pos = end_pos
-
         return chunks
 
     def _simple_chunk(self, content: str, file_path: str) -> List[Chunk]:

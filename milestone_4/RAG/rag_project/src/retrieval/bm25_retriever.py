@@ -41,9 +41,15 @@ class BM25Retriever:
         Returns:
             List of tokens
         """
-        # Simple whitespace + lowercase tokenization
-        # Could be improved with better tokenizer
-        return text.lower().split()
+        text = text.lower()
+
+        # Split on non-alphanumeric
+        import re
+        tokens = re.findall(r'\w+', text)
+        # Remove stopwords (optional)
+        stopwords = {'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or'}
+        tokens = [t for t in tokens if t not in stopwords]
+        return tokens
 
     def index_directory(
         self,
