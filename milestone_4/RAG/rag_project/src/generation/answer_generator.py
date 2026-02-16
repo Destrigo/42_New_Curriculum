@@ -93,8 +93,8 @@ class AnswerGenerator:
         self,
         question: str,
         context: str,
-        max_new_tokens: int = 200,
-        temperature: float = 0.7
+        max_new_tokens: int = 100,
+        temperature: float = 0.0
     ) -> str:
         """
         Generate answer given question and context.
@@ -116,7 +116,7 @@ class AnswerGenerator:
             prompt,
             return_tensors="pt",
             truncation=True,
-            max_length=2048
+            max_length=1024
         ).to(self.device)
         
         # Generate
@@ -124,10 +124,12 @@ class AnswerGenerator:
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                do_sample=True,
-                top_p=0.9,
-                pad_token_id=self.tokenizer.eos_token_id
+                # temperature=temperature,
+                do_sample=False,
+                # top_p=0.9,
+                pad_token_id=self.tokenizer.eos_token_id,
+                num_beams=1,
+                early_stopping=True
             )
         
         # Decode
@@ -164,8 +166,8 @@ Answer: """
         self,
         question: str,
         sources: List[MinimalSource],
-        max_context_length: int = 2000,
-        max_new_tokens: int = 200
+        max_context_length: int = 1500,
+        max_new_tokens: int = 100
     ) -> str:
         """
         Generate answer from question and retrieved sources.
