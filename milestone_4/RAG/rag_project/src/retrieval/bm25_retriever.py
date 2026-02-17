@@ -47,7 +47,8 @@ class BM25Retriever:
         import re
         tokens = re.findall(r'\w+', text)
         # Remove stopwords (optional)
-        stopwords = {'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or'}
+        stopwords = {'the', 'a', 'an', 'in', 'on', 'at',
+                     'to', 'for', 'of', 'and', 'or'}
         tokens = [t for t in tokens if t not in stopwords]
         return tokens
 

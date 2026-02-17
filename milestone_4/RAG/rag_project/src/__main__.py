@@ -38,15 +38,18 @@ class RAGSystem:
             source_dir: Directory containing source code
             max_chunk_size: Maximum chunk size in characters
         """
-        print(f"Indexing directory: {source_dir}")
-        print(f"Max chunk size: {max_chunk_size}")
+        try:
+            print(f"Indexing directory: {source_dir}")
+            print(f"Max chunk size: {max_chunk_size}")
 
-        # Initialize retriever
-        self.retriever = BM25Retriever(max_chunk_size=max_chunk_size)
-        self.retriever.index_directory(source_dir)  # Index directory
-        self.retriever.save_index(self.index_path)  # Save index
+            # Initialize retriever
+            self.retriever = BM25Retriever(max_chunk_size=max_chunk_size)
+            self.retriever.index_directory(source_dir)  # Index directory
+            self.retriever.save_index(self.index_path)  # Save index
 
-        print(f"Ingestion complete! Index saved to {self.index_path}")
+            print(f"Ingestion complete! Index saved to {self.index_path}")
+        except Exception as e:
+            print(e)
 
     def search(self, query: str, k: int = 10) -> None:
         """
@@ -55,18 +58,19 @@ class RAGSystem:
             query: Search query
             k: Number of results to return
         """
-
-        self._ensure_retriever()  # Load retriever
-        # Search
-        results = self.retriever.search(query, k=k)  # type: ignore
-
-        # Print results
-        print(f"\nTop {k} results for: {query}\n")
-        for i, result in enumerate(results, 1):
-            print(f"{i}. {result.file_path}")
-            print(f"   Characters: {result.first_character_index}-"
-                  f"{result.last_character_index}")
-            print()
+        try:
+            self._ensure_retriever()  # Load retriever
+            # Search
+            results = self.retriever.search(query, k=k)  # type: ignore
+            # Print results
+            print(f"\nTop {k} results for: {query}\n")
+            for i, result in enumerate(results, 1):
+                print(f"{i}. {result.file_path}")
+                print(f"   Characters: {result.first_character_index}-"
+                    f"{result.last_character_index}")
+                print()
+        except Exception as e:
+            print(e)                
 
     def search_dataset(
         self,
@@ -81,39 +85,42 @@ class RAGSystem:
             k: Number of results to retrieve
             save_directory: Directory to save results
         """
-        # Load retriever
-        self._ensure_retriever()
+        try:
+            # Load retriever
+            self._ensure_retriever()
 
-        # Load dataset
-        print(f"Loading dataset from {dataset_path}")
-        dataset = load_json(dataset_path, RagDataset)
+            # Load dataset
+            print(f"Loading dataset from {dataset_path}")
+            dataset = load_json(dataset_path, RagDataset)
 
-        # Process all questions
-        search_results = []
-        for question_obj in tqdm(dataset.rag_questions, desc="Searching"):
-            # Search
-            retrieved_sources = self.retriever.search(question_obj.question,
-                                                      k=k)  # type: ignore
+            # Process all questions
+            search_results = []
+            for question_obj in tqdm(dataset.rag_questions, desc="Searching"):
+                # Search
+                retrieved_sources = self.retriever.search(question_obj.question,
+                                                        k=k)  # type: ignore
 
-            # Create result
-            result = MinimalSearchResults(
-                question_id=question_obj.question_id,
-                question=question_obj.question,
-                retrieved_sources=retrieved_sources
+                # Create result
+                result = MinimalSearchResults(
+                    question_id=question_obj.question_id,
+                    question=question_obj.question,
+                    retrieved_sources=retrieved_sources
+                )
+                search_results.append(result)
+
+            # Create output
+            output = StudentSearchResults(
+                search_results=search_results,
+                k=k
             )
-            search_results.append(result)
 
-        # Create output
-        output = StudentSearchResults(
-            search_results=search_results,
-            k=k
-        )
-
-        # Save
-        dataset_name = Path(dataset_path).name
-        output_path = Path(save_directory) / dataset_name
-        save_json(output, output_path)
-        print(f"\nSaved student_search_results to {output_path}")
+            # Save
+            dataset_name = Path(dataset_path).name
+            output_path = Path(save_directory) / dataset_name
+            save_json(output, output_path)
+            print(f"\nSaved student_search_results to {output_path}")
+        except Exception as e:
+            print(e)
 
     def answer_dataset(
         self,
@@ -126,47 +133,50 @@ class RAGSystem:
             student_search_results_path: Path to StudentSearchResults JSON
             save_directory: Directory to save results
         """
-        # Load generator
-        self._ensure_generator()
+        try:
+            # Load generator
+            self._ensure_generator()
 
-        # Load search results
-        print(f"Loading search results from {student_search_results_path}")
-        search_results = load_json(student_search_results_path,
-                                   StudentSearchResults)
+            # Load search results
+            print(f"Loading search results from {student_search_results_path}")
+            search_results = load_json(student_search_results_path,
+                                    StudentSearchResults)
 
-        print(f"Loaded {len(search_results.search_results)} questions")
+            print(f"Loaded {len(search_results.search_results)} questions")
 
-        # Generate answers
-        answers_results = []
+            # Generate answers
+            answers_results = []
 
-        for result in tqdm(search_results.search_results,
-                           desc="Generating answers"):
-            # Generate answer
-            answer = self.generator.answer_from_sources(  # type: ignore
-                question=result.question,
-                sources=result.retrieved_sources
+            for result in tqdm(search_results.search_results,
+                            desc="Generating answers"):
+                # Generate answer
+                answer = self.generator.answer_from_sources(  # type: ignore
+                    question=result.question,
+                    sources=result.retrieved_sources
+                )
+
+                # Create answer result
+                answer_result = MinimalAnswer(
+                    question_id=result.question_id,
+                    question=result.question,
+                    retrieved_sources=result.retrieved_sources,
+                    answer=answer
+                )
+                answers_results.append(answer_result)
+
+            # Create output
+            output = StudentSearchResultsAndAnswer(
+                search_results=answers_results,
+                k=search_results.k
             )
 
-            # Create answer result
-            answer_result = MinimalAnswer(
-                question_id=result.question_id,
-                question=result.question,
-                retrieved_sources=result.retrieved_sources,
-                answer=answer
-            )
-            answers_results.append(answer_result)
-
-        # Create output
-        output = StudentSearchResultsAndAnswer(
-            search_results=answers_results,
-            k=search_results.k
-        )
-
-        # Save
-        dataset_name = Path(student_search_results_path).name
-        output_path = Path(save_directory) / dataset_name
-        save_json(output, output_path)
-        print(f"\nSaved answers to {output_path}")
+            # Save
+            dataset_name = Path(student_search_results_path).name
+            output_path = Path(save_directory) / dataset_name
+            save_json(output, output_path)
+            print(f"\nSaved answers to {output_path}")
+        except Exception as e:
+            print(e)
 
     def evaluate(
         self,
@@ -179,31 +189,33 @@ class RAGSystem:
             student_answer_path: Path to student search results
             dataset_path: Path to ground truth dataset
         """
-        # Load data
-        print(f"Loading student results from {student_answer_path}")
-        student_results = load_json(student_answer_path, StudentSearchResults)
+        try:
+            # Load data
+            print(f"Loading student results from {student_answer_path}")
+            student_results = load_json(student_answer_path, StudentSearchResults)
 
-        print(f"Loading ground truth from {dataset_path}")
-        ground_truth = load_json(dataset_path, RagDataset)
+            print(f"Loading ground truth from {dataset_path}")
+            ground_truth = load_json(dataset_path, RagDataset)
 
-        # Validate
-        print("\nStudent data is valid: True")
-        print(f"Total number of questions: {len(student_results.search_results)
-                                            }")
-        print("Total number of questions with student "
-              f"sources: {len(student_results.search_results)}")
+            # Validate
+            print("\nStudent data is valid: True")
+            print(f"Total number of questions: {len(student_results.search_results)}")
+            print("Total number of questions with student "
+                f"sources: {len(student_results.search_results)}")
 
-        # Evaluate
-        results = evaluate_search_results(student_results, ground_truth)
+            # Evaluate
+            results = evaluate_search_results(student_results, ground_truth)
 
-        # Print results
-        print("\nEvaluation Results")
-        print("=" * 40)
-        print(f"Questions evaluated: {len(student_results.search_results)}")
+            # Print results
+            print("\nEvaluation Results")
+            print("=" * 40)
+            print(f"Questions evaluated: {len(student_results.search_results)}")
 
-        for k in [1, 3, 5, 10]:
-            recall = results.get(f"recall@{k}", 0.0)
-            print(f"Recall@{k}: {recall:.3f} ({recall * 100:.1f}%)")
+            for k in [1, 3, 5, 10]:
+                recall = results.get(f"recall@{k}", 0.0)
+                print(f"Recall@{k}: {recall:.3f} ({recall * 100:.1f}%)")
+        except Exception as e:
+            print(e)
 
     def answer(self, query: str, k: int = 10) -> None:
         """
@@ -212,23 +224,26 @@ class RAGSystem:
             query: Question to answer
             k: Number of sources to retrieve
         """
-        # Load retriever and generator
-        self._ensure_retriever()
-        self._ensure_generator()
+        try:
+            # Load retriever and generator
+            self._ensure_retriever()
+            self._ensure_generator()
 
-        # Retrieve
-        sources = self.retriever.search(query, k=k)  # type: ignore
+            # Retrieve
+            sources = self.retriever.search(query, k=k)  # type: ignore
 
-        # Generate answer
-        answer = self.generator.answer_from_sources(query,
-                                                    sources)  # type: ignore
+            # Generate answer
+            answer = self.generator.answer_from_sources(query,
+                                                        sources)
 
-        # Print
-        print(f"\nQuestion: {query}\n")
-        print(f"Answer: {answer}\n")
-        print(f"\nSources ({len(sources)}):")
-        for i, source in enumerate(sources, 1):
-            print(f"{i}. {source.file_path}")
+            # Print
+            print(f"\nQuestion: {query}\n")
+            print(f"Answer: {answer}\n")
+            print(f"\nSources ({len(sources)}):")
+            for i, source in enumerate(sources, 1):
+                print(f"{i}. {source.file_path}")
+        except Exception as e:
+            print(e)
 
     def _ensure_retriever(self) -> None:
         """Ensure retriever is loaded."""

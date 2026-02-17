@@ -23,10 +23,15 @@ MAX_CHUNK_SIZE ?= 2000
 # Setup commands
 install:
 	@echo "Creating virtual environment..."
-	$(UV) venv $(VENV) || python3 -m venv $(VENV)
+	$(UV) venv $(VENV)
 	@echo "Installing project dependencies..."
 	$(UV) pip install -e .
 	@echo "✓ Installation complete!"
+
+start:
+	git clone https://github.com/vllm-project/vllm.git data/raw/vllm-0.10.1
+	cd data/raw/vllm-0.10.1
+# 	git checkout v0.10.1
 
 clean:
 	rm -rf __pycache__ .mypy_cache .pytest_cache
