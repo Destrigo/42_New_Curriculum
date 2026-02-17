@@ -27,6 +27,10 @@ class RAGSystem:
         self.generator: AnswerGenerator | None = None
         self.index_path = "data/processed/bm25_index.pkl"
 
+    def ingest(self, source_dir: str = "data/raw/vllm-0.10.1", max_chunk_size: int = 2000) -> None:
+        """Alias for index command."""
+        return self.index(source_dir=source_dir, max_chunk_size=max_chunk_size)
+
     def index(
         self,
         source_dir: str = "data/raw/vllm-0.10.1",
@@ -67,7 +71,7 @@ class RAGSystem:
             for i, result in enumerate(results, 1):
                 print(f"{i}. {result.file_path}")
                 print(f"   Characters: {result.first_character_index}-"
-                    f"{result.last_character_index}")
+                      f"{result.last_character_index}")
                 print()
         except Exception as e:
             print(e)                
@@ -97,14 +101,14 @@ class RAGSystem:
             search_results = []
             for question_obj in tqdm(dataset.rag_questions, desc="Searching"):
                 # Search
-                retrieved_sources = self.retriever.search(question_obj.question,
-                                                        k=k)  # type: ignore
+                retr_src = self.retriever.search(question_obj.question,
+                                                 k=k)  # type: ignore
 
                 # Create result
                 result = MinimalSearchResults(
                     question_id=question_obj.question_id,
                     question=question_obj.question,
-                    retrieved_sources=retrieved_sources
+                    retrieved_sources=retr_src
                 )
                 search_results.append(result)
 
@@ -140,7 +144,7 @@ class RAGSystem:
             # Load search results
             print(f"Loading search results from {student_search_results_path}")
             search_results = load_json(student_search_results_path,
-                                    StudentSearchResults)
+                                       StudentSearchResults)
 
             print(f"Loaded {len(search_results.search_results)} questions")
 
@@ -148,7 +152,7 @@ class RAGSystem:
             answers_results = []
 
             for result in tqdm(search_results.search_results,
-                            desc="Generating answers"):
+                               desc="Generating answers"):
                 # Generate answer
                 answer = self.generator.answer_from_sources(  # type: ignore
                     question=result.question,
@@ -192,16 +196,18 @@ class RAGSystem:
         try:
             # Load data
             print(f"Loading student results from {student_answer_path}")
-            student_results = load_json(student_answer_path, StudentSearchResults)
+            student_results = load_json(student_answer_path,
+                                        StudentSearchResults)
 
             print(f"Loading ground truth from {dataset_path}")
             ground_truth = load_json(dataset_path, RagDataset)
 
             # Validate
             print("\nStudent data is valid: True")
-            print(f"Total number of questions: {len(student_results.search_results)}")
+            print("Total number of "
+                  f"questions: {len(student_results.search_results)}")
             print("Total number of questions with student "
-                f"sources: {len(student_results.search_results)}")
+                  f"sources: {len(student_results.search_results)}")
 
             # Evaluate
             results = evaluate_search_results(student_results, ground_truth)
@@ -209,7 +215,8 @@ class RAGSystem:
             # Print results
             print("\nEvaluation Results")
             print("=" * 40)
-            print(f"Questions evaluated: {len(student_results.search_results)}")
+            print("Questions "
+                  f"evaluated: {len(student_results.search_results)}")
 
             for k in [1, 3, 5, 10]:
                 recall = results.get(f"recall@{k}", 0.0)

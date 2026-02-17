@@ -31,7 +31,7 @@ install:
 start:
 	git clone https://github.com/vllm-project/vllm.git data/raw/vllm-0.10.1
 	cd data/raw/vllm-0.10.1
-# 	git checkout v0.10.1
+	git checkout v0.10.1
 
 clean:
 	rm -rf __pycache__ .mypy_cache .pytest_cache
@@ -44,11 +44,11 @@ lint:
 	$(VENV)/bin/mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports
 
 # RAG commands
-index:
-	$(PYTHON) -m src index --source_dir $(VLLM_DIR) --max_chunk_size $(MAX_CHUNK_SIZE)
+ingest:
+	$(PYTHON) -m src ingest --source_dir $(VLLM_DIR) --max_chunk_size $(MAX_CHUNK_SIZE)
 
 search:
-	$(PYTHON) -m src search $(QUERY) --k $(K)
+	$(PYTHON) -m src search "$(QUERY)" --k $(K)
 
 search-dataset:
 	$(PYTHON) -m src search_dataset --dataset_path $(DATASET_DOCS) --k $(K) --save_directory $(OUTPUT_DIR)
@@ -69,7 +69,7 @@ answer-dataset-code:
 	$(PYTHON) -m src answer_dataset --student_search_results_path $(OUTPUT_DIR)/dataset_code_public.json --save_directory $(ANSWER_DIR)
 
 answer:
-	$(PYTHON) -m src answer $(QUERY) --k $(K)
+	$(PYTHON) -m src answer "$(QUERY)" --k $(K)
 
 # Full workflow tests
 test-search:
@@ -84,7 +84,7 @@ test-answer:
 
 test-full:
 	@echo "Running full workflow..."
-	make index
+	make ingest
 	make search-dataset
 	make evaluate
 	make answer-dataset
@@ -98,7 +98,7 @@ help:
 	@echo "  make clean                - Clean cache and temp files"
 	@echo ""
 	@echo "RAG Commands:"
-	@echo "  make index                - Index vLLM repository"
+	@echo "  make ingest                - Index vLLM repository"
 	@echo "  make search               - Search single query (QUERY='...' K=5)"
 	@echo "  make search-dataset       - Search docs dataset"
 	@echo "  make search-dataset-code  - Search code dataset"
@@ -112,7 +112,7 @@ help:
 	@echo "  make test-search          - Test search command"
 	@echo "  make test-evaluate        - Search + evaluate"
 	@echo "  make test-answer          - Test answer command"
-	@echo "  make test-full            - Full pipeline (index → search → evaluate → answer)"
+	@echo "  make test-full            - Full pipeline (ingest → search → evaluate → answer)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make search QUERY='What is vLLM?' K=5"

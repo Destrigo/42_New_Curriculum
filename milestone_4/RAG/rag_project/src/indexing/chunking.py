@@ -66,7 +66,10 @@ class PythonChunker:
                         )
                         chunks.extend(sub_chunks)
                     else:
-                        chunk_type = "function" if isinstance(node, ast.FunctionDef) else "class"
+                        if isinstance(node, ast.FunctionDef):
+                            chunk_type = "function"
+                        else:
+                            chunk_type = "class"
                         chunks.append(Chunk(
                             file_path=file_path,
                             content=chunk_content,

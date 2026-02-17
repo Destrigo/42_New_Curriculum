@@ -16,5 +16,12 @@ git checkout v0.10.1
 cd ../../..
 
 make start
+
 make index
 make test-evaluate
+
+make search-dataset-code
+make evaluate-code
+
+make answer-dataset
+make answer-dataset-code
