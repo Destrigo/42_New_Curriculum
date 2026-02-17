@@ -27,7 +27,9 @@ class RAGSystem:
         self.generator: AnswerGenerator | None = None
         self.index_path = "data/processed/bm25_index.pkl"
 
-    def ingest(self, source_dir: str = "data/raw/vllm-0.10.1", max_chunk_size: int = 2000) -> None:
+    def ingest(self,
+               source_dir: str = "data/raw/vllm-0.10.1",
+               max_chunk_size: int = 2000) -> None:
         """Alias for index command."""
         return self.index(source_dir=source_dir, max_chunk_size=max_chunk_size)
 
@@ -74,7 +76,7 @@ class RAGSystem:
                       f"{result.last_character_index}")
                 print()
         except Exception as e:
-            print(e)                
+            print(e)
 
     def search_dataset(
         self,

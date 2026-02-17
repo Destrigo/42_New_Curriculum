@@ -9,7 +9,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from src.models import MinimalSource
 
 
-def extractive_answer(question: str, context: str, max_length: int = 300) -> str:
+def extractive_answer(question: str,
+                      context: str,
+                      max_length: int = 300) -> str:
     """
     Extract the most relevant passage from context as answer.
     No LLM needed - runs in milliseconds.
@@ -52,7 +54,9 @@ def extractive_answer(question: str, context: str, max_length: int = 300) -> str
         overlap = question_tokens & tokens
         return len(overlap) / (len(question_tokens) + 0.001)
 
-    scored = sorted(enumerate(sentences), key=lambda x: score_sentence(x[1]), reverse=True)
+    scored = sorted(enumerate(sentences),
+                    key=lambda x: score_sentence(x[1]),
+                    reverse=True)
 
     # Pick top sentences until max_length, preserving order
     selected_indices = set()
@@ -120,7 +124,8 @@ class AnswerGenerator:
             self.model.eval()
             print("Model loaded successfully!")
         else:
-            print(f"No GPU detected. Using fast extractive answers (CPU mode).")
+            print("No GPU detected. Using fast "
+                  "extractive answers (CPU mode).")
             self.tokenizer = None
             self.model = None
 
@@ -144,10 +149,14 @@ class AnswerGenerator:
 
         for source in sources:
             try:
-                with open(source.file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                with open(source.file_path, 'r', encoding='utf-8',
+                          errors='ignore') as f:
                     f.seek(source.first_character_index)
+                    src_last = source.last_character_index
+                    stc_frst = source.first_character_index
+                    src = src_last - stc_frst
                     chunk_content = f.read(
-                        source.last_character_index - source.first_character_index
+                        src
                     )
                 if total_length + len(chunk_content) < max_context_length:
                     contexts.append(chunk_content)

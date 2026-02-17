@@ -40,8 +40,8 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 lint:
-	$(VENV)/bin/flake8 .
-	$(VENV)/bin/mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports
+	python3 -m flake8 src
+	python3 -m mypy src --warn-return-any --warn-unused-ignores --ignore-missing-imports
 
 # RAG commands
 ingest:
