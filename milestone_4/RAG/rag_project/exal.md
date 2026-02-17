@@ -17,7 +17,7 @@ cd ../../..
 
 make start
 
-make index
+make ingest
 make test-evaluate
 
 make search-dataset-code
