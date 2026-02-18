@@ -31,3 +31,8 @@ make answer-dataset-code
 uv run python -m moulinette evaluate_student_search_results \
   data/output/search_results/dataset_docs_public.json \
   datasets/AnsweredQuestions/dataset_docs_public.json
+
+
+uv run python -m moulinette evaluate_student_search_results \
+  data/output/search_results/dataset_code_public.json \
+  datasets/AnsweredQuestions/dataset_code_public.json
