@@ -9,15 +9,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from src.models import MinimalSource
 
 
-def extractive_answer(question: str,
-                      context: str,
-                      max_length: int = 300) -> str:
+def extractive_answer(question: str, context: str, max_length: int = 400) -> str:
     """
-    Extract the most relevant passage from context as answer.
+    Extract the most relevant sentences from context as answer.
     No LLM needed - runs in milliseconds.
-
-    Scores each sentence by counting query term matches,
-    then returns the top sentences up to max_length chars.
 
     Args:
         question: The question to answer
@@ -30,52 +25,46 @@ def extractive_answer(question: str,
     if not context.strip():
         return "No relevant context found."
 
-    # Tokenize question into keywords (remove stopwords)
-    stopwords = {
+    # Only remove pure question words, keep content words like "vllm", "used", etc.
+    question_stopwords = {
         'what', 'which', 'where', 'when', 'who', 'how', 'why',
-        'is', 'are', 'was', 'were', 'the', 'a', 'an', 'in', 'on',
-        'at', 'to', 'for', 'of', 'and', 'or', 'does', 'do', 'can',
-        'used', 'use', 'with', 'by', 'from', 'this', 'that', 'be'
+        'is', 'are', 'was', 'were', 'does', 'do', 'can', 'could',
+        'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of',
+        'and', 'or', 'with', 'by', 'from', 'this', 'that'
     }
-    question_tokens = set(re.findall(r'\w+', question.lower())) - stopwords
+    question_tokens = set(re.findall(r'\w+', question.lower())) - question_stopwords
 
-    # Split context into sentences
-    sentences = re.split(r'(?<=[.!?])\s+|\n', context)
-    sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
+    # Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+|\n+', context)
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 30]
 
     if not sentences:
         return context[:max_length].strip()
 
-    # Score each sentence by keyword overlap with question
-    def score_sentence(sentence: str) -> float:
+    def score(sentence: str) -> float:
         tokens = set(re.findall(r'\w+', sentence.lower()))
         if not tokens:
             return 0.0
         overlap = question_tokens & tokens
-        return len(overlap) / (len(question_tokens) + 0.001)
+        return len(overlap) / max(len(question_tokens), 1)
 
-    scored = sorted(enumerate(sentences),
-                    key=lambda x: score_sentence(x[1]),
-                    reverse=True)
+    # Sort by relevance
+    scored = sorted(enumerate(sentences), key=lambda x: score(x[1]), reverse=True)
 
-    # Pick top sentences until max_length, preserving order
+    # Pick top sentences up to max_length
     selected_indices = set()
     total_len = 0
-    for idx, sentence in scored:
+    for idx, sentence in scored[:5]:
         if total_len + len(sentence) > max_length:
             break
         selected_indices.add(idx)
         total_len += len(sentence)
-        if total_len >= max_length // 2:
-            break
 
     if not selected_indices:
-        # Fallback: return first sentences
         return sentences[0][:max_length].strip()
 
     # Return in original document order
-    result = ' '.join(sentences[i] for i in sorted(selected_indices))
-    return result.strip()
+    return ' '.join(sentences[i] for i in sorted(selected_indices)).strip()
 
 
 class AnswerGenerator:
@@ -85,16 +74,17 @@ class AnswerGenerator:
         self,
         model_name: str = "Qwen/Qwen3-0.6B",
         device: str | None = None,
-        use_llm: bool | None = None  # None = auto-detect
+        use_llm: bool | None = None
     ) -> None:
         """
         Initialize answer generator.
 
+        Auto-detects GPU: uses LLM if GPU available, extractive if CPU only.
+
         Args:
             model_name: HuggingFace model name
-            device: Device to use ('cuda', 'cpu', or None for auto)
-            use_llm: True = always use LLM, False = extractive only,
-                     None = auto (use LLM only if GPU available)
+            device: Device ('cuda', 'cpu', or None for auto)
+            use_llm: True=always LLM, False=always extractive, None=auto
         """
         self.model_name = model_name
 
@@ -103,7 +93,6 @@ class AnswerGenerator:
         else:
             self.device = device
 
-        # Auto-decide: use LLM only if GPU available (CPU too slow)
         if use_llm is None:
             self.use_llm = self.device == "cuda"
         else:
@@ -111,7 +100,6 @@ class AnswerGenerator:
 
         if self.use_llm:
             print(f"Loading model {model_name} on {self.device}...")
-
             self.tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
                 trust_remote_code=True
@@ -124,8 +112,7 @@ class AnswerGenerator:
             self.model.eval()
             print("Model loaded successfully!")
         else:
-            print("No GPU detected. Using fast "
-                  "extractive answers (CPU mode).")
+            print("No GPU detected. Using fast extractive answers (CPU mode).")
             self.tokenizer = None
             self.model = None
 
@@ -147,16 +134,12 @@ class AnswerGenerator:
         contexts = []
         total_length = 0
 
-        for source in sources:
+        for source in sources[:3]:  # Top 3 sources is enough
             try:
-                with open(source.file_path, 'r', encoding='utf-8',
-                          errors='ignore') as f:
+                with open(source.file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     f.seek(source.first_character_index)
-                    src_last = source.last_character_index
-                    stc_frst = source.first_character_index
-                    src = src_last - stc_frst
                     chunk_content = f.read(
-                        src
+                        source.last_character_index - source.first_character_index
                     )
                 if total_length + len(chunk_content) < max_context_length:
                     contexts.append(chunk_content)
@@ -176,24 +159,23 @@ class AnswerGenerator:
         max_new_tokens: int = 100,
     ) -> str:
         """
-        Generate answer given question and context.
+        Generate answer from question and context.
 
-        Uses LLM if GPU available, otherwise extractive approach.
+        Uses LLM if GPU available, otherwise fast extractive approach.
 
         Args:
             question: Question to answer
             context: Retrieved context
-            max_new_tokens: Maximum tokens to generate (LLM only)
+            max_new_tokens: Max tokens (LLM only)
 
         Returns:
-            Generated or extracted answer
+            Answer string
         """
         if not self.use_llm:
             return extractive_answer(question, context)
 
         # LLM path (GPU only)
-        prompt = self._create_prompt(question, context)
-        messages = [{"role": "user", "content": prompt}]
+        messages = [{"role": "user", "content": self._create_prompt(question, context)}]
 
         try:
             text = self.tokenizer.apply_chat_template(  # type: ignore
@@ -210,10 +192,7 @@ class AnswerGenerator:
             )
 
         inputs = self.tokenizer(  # type: ignore
-            text,
-            return_tensors="pt",
-            truncation=True,
-            max_length=1024
+            text, return_tensors="pt", truncation=True, max_length=1024
         ).to(self.device)
 
         with torch.no_grad():
@@ -227,21 +206,13 @@ class AnswerGenerator:
 
         input_length = inputs["input_ids"].shape[1]
         generated_tokens = outputs[0][input_length:]
-        answer = self.tokenizer.decode(  # type: ignore
-            generated_tokens,
-            skip_special_tokens=True
+        return self.tokenizer.decode(  # type: ignore
+            generated_tokens, skip_special_tokens=True
         ).strip()
-
-        return answer
 
     def _create_prompt(self, question: str, context: str) -> str:
         """Create prompt for the LLM."""
-        return f"""Context:
-{context}
-
-Question: {question}
-
-Answer:"""
+        return f"Context:\n{context}\n\nQuestion: {question}\n\nAnswer:"
 
     def answer_from_sources(
         self,
@@ -256,11 +227,11 @@ Answer:"""
         Args:
             question: Question to answer
             sources: Retrieved sources
-            max_context_length: Maximum context length
-            max_new_tokens: Maximum tokens to generate
+            max_context_length: Max context length in chars
+            max_new_tokens: Max tokens to generate (LLM only)
 
         Returns:
-            Generated answer
+            Answer string
         """
         context = self.load_context_from_sources(sources, max_context_length)
         return self.generate_answer(question, context, max_new_tokens)

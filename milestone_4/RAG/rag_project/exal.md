@@ -20,8 +20,14 @@ make start
 make ingest
 make test-evaluate
 
+make search-dataset
 make search-dataset-code
+make evaluate
 make evaluate-code
 
 make answer-dataset
 make answer-dataset-code
+
+uv run python -m moulinette evaluate_student_search_results \
+  data/output/search_results/dataset_docs_public.json \
+  datasets/AnsweredQuestions/dataset_docs_public.json
