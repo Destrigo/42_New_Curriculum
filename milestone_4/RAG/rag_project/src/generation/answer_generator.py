@@ -3,13 +3,15 @@ Answer generation using Qwen LLM with extractive fallback.
 """
 
 import re
-from typing import List
+from typing import Any, List
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from src.models import MinimalSource
 
 
-def extractive_answer(question: str, context: str, max_length: int = 400) -> str:
+def extractive_answer(question: str,
+                      context: str,
+                      max_length: int = 400) -> str:
     """
     Extract the most relevant sentences from context as answer.
     No LLM needed - runs in milliseconds.
@@ -25,14 +27,15 @@ def extractive_answer(question: str, context: str, max_length: int = 400) -> str
     if not context.strip():
         return "No relevant context found."
 
-    # Only remove pure question words, keep content words like "vllm", "used", etc.
+    # Only remove pure question words
     question_stopwords = {
         'what', 'which', 'where', 'when', 'who', 'how', 'why',
         'is', 'are', 'was', 'were', 'does', 'do', 'can', 'could',
         'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of',
         'and', 'or', 'with', 'by', 'from', 'this', 'that'
     }
-    question_tokens = set(re.findall(r'\w+', question.lower())) - question_stopwords
+    question_tokens = set(re.findall(r'\w+',
+                                     question.lower())) - question_stopwords
 
     # Split into sentences
     sentences = re.split(r'(?<=[.!?])\s+|\n+', context)
@@ -49,7 +52,8 @@ def extractive_answer(question: str, context: str, max_length: int = 400) -> str
         return len(overlap) / max(len(question_tokens), 1)
 
     # Sort by relevance
-    scored = sorted(enumerate(sentences), key=lambda x: score(x[1]), reverse=True)
+    scored = sorted(enumerate(sentences),
+                    key=lambda x: score(x[1]), reverse=True)
 
     # Pick top sentences up to max_length
     selected_indices = set()
@@ -136,11 +140,12 @@ class AnswerGenerator:
 
         for source in sources[:3]:  # Top 3 sources is enough
             try:
-                with open(source.file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                with open(source.file_path, 'r',
+                          encoding='utf-8', errors='ignore') as f:
                     f.seek(source.first_character_index)
-                    chunk_content = f.read(
-                        source.last_character_index - source.first_character_index
-                    )
+                    asd = source.last_character_index
+                    dsa = source.first_character_index
+                    chunk_content = f.read(asd - dsa)
                 if total_length + len(chunk_content) < max_context_length:
                     contexts.append(chunk_content)
                     total_length += len(chunk_content)
@@ -157,7 +162,7 @@ class AnswerGenerator:
         question: str,
         context: str,
         max_new_tokens: int = 100,
-    ) -> str:
+    ) -> Any:
         """
         Generate answer from question and context.
 
@@ -175,42 +180,43 @@ class AnswerGenerator:
             return extractive_answer(question, context)
 
         # LLM path (GPU only)
-        messages = [{"role": "user", "content": self._create_prompt(question, context)}]
+        messages = [{"role": "user",
+                     "content": self._create_prompt(question, context)}]
 
         try:
-            text = self.tokenizer.apply_chat_template(  # type: ignore
+            text = self.tokenizer.apply_chat_template(
                 messages,
                 tokenize=False,
                 add_generation_prompt=True,
                 enable_thinking=False
             )
         except TypeError:
-            text = self.tokenizer.apply_chat_template(  # type: ignore
+            text = self.tokenizer.apply_chat_template(
                 messages,
                 tokenize=False,
                 add_generation_prompt=True,
             )
 
-        inputs = self.tokenizer(  # type: ignore
+        inputs = self.tokenizer(
             text, return_tensors="pt", truncation=True, max_length=1024
         ).to(self.device)
 
         with torch.no_grad():
-            outputs = self.model.generate(  # type: ignore
+            outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
                 do_sample=False,
-                pad_token_id=self.tokenizer.eos_token_id,  # type: ignore
+                pad_token_id=self.tokenizer.eos_token_id,
                 num_beams=1,
             )
 
         input_length = inputs["input_ids"].shape[1]
         generated_tokens = outputs[0][input_length:]
-        return self.tokenizer.decode(  # type: ignore
+        return self.tokenizer.decode(
             generated_tokens, skip_special_tokens=True
         ).strip()
 
-    def _create_prompt(self, question: str, context: str) -> str:
+    def _create_prompt(self, question: str, context: str) -> Any:
         """Create prompt for the LLM."""
         return f"Context:\n{context}\n\nQuestion: {question}\n\nAnswer:"
 
@@ -220,7 +226,7 @@ class AnswerGenerator:
         sources: List[MinimalSource],
         max_context_length: int = 1500,
         max_new_tokens: int = 100
-    ) -> str:
+    ) -> Any:
         """
         Generate answer from question and retrieved sources.
 
