@@ -11,11 +11,11 @@ from typing import Any, Optional
 import pygame
 
 from src.constants import (
-    FPS, CELL_SIZE,
-    DIR_N, DIR_E, DIR_S, DIR_W, DIR_DELTA,
+    FPS,
+    DIR_N, DIR_E, DIR_S, DIR_W,
     ITEM_EMPTY, ITEM_PACGUM, ITEM_SUPER,
     STATE_MENU, STATE_PLAYING, STATE_PAUSED,
-    STATE_GAMEOVER, STATE_VICTORY, STATE_ENTER_NAME,
+    STATE_ENTER_NAME,
     STATE_HIGHSCORES, STATE_INSTRUCTIONS,
     DEFAULT_CONFIG,
 )
@@ -115,7 +115,7 @@ class Game:
             Dict with 'width' and 'height' keys.
         """
         levels = self.config.get("levels",
-                                  DEFAULT_CONFIG["levels"])
+                                 DEFAULT_CONFIG["levels"])
         idx = min(level_num - 1, len(levels) - 1)
         if idx < 0:
             idx = 0
@@ -128,7 +128,7 @@ class Game:
             Number of levels defined in config.
         """
         levels = self.config.get("levels",
-                                  DEFAULT_CONFIG["levels"])
+                                 DEFAULT_CONFIG["levels"])
         return len(levels)
 
     def start_level(self, level_num: int,

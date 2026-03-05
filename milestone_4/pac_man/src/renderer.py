@@ -11,9 +11,9 @@ import pygame
 
 from src.constants import (
     CELL_SIZE, HUD_HEIGHT,
-    BLACK, WHITE, YELLOW, BLUE, DARK_BLUE,
+    BLACK, WHITE, YELLOW, BLUE,
     WALL_COLOR, WALL_FILL, PACGUM_COLOR, BG_COLOR,
-    FRIGHTENED_BLUE, GHOST_COLORS,
+    FRIGHTENED_BLUE,
     WALL_ALL, WALL_N, WALL_E, WALL_S, WALL_W,
     ITEM_PACGUM, ITEM_SUPER,
     DIR_N, DIR_E, DIR_S, DIR_W,
@@ -239,7 +239,7 @@ class Renderer:
                 color = WHITE
 
         # Body - semicircle top + wavy bottom
-        body_rect = pygame.Rect(cx - r, cy - r, r * 2, r * 2)
+        # body_rect = pygame.Rect(cx - r, cy - r, r * 2, r * 2)
         pygame.draw.circle(self.screen, color, (cx, cy - 2), r)
         pygame.draw.rect(
             self.screen, color,

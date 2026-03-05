@@ -44,7 +44,7 @@ DIR_DELTA: Final[dict[str, tuple[int, int]]] = {
     DIR_N: (0, -1),
     DIR_E: (1, 0),
     DIR_S: (0, 1),
-    DIR_W: (-1, 0), 
+    DIR_W: (-1, 0),
 }
 
 OPPOSITE: Final[dict[str, str]] = {

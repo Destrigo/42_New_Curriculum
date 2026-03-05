@@ -5,6 +5,7 @@ Summary: A Pac-Man game built in Python with Pygame
 License: MIT
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+Requires-Dist: mypy>=1.19.1
 Requires-Dist: pygame>=2.5.0
 
 *This project has been created as part of the 42 curriculum by mtaranti.*

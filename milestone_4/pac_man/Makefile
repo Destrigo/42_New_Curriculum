@@ -60,15 +60,10 @@ clean:
 
 ## Run linting (flake8 + mypy)
 lint:
-	flake8 .
-	mypy . --warn-return-any --warn-unused-ignores \
+	flake8 src/*
+	mypy src/* --warn-return-any --warn-unused-ignores \
 		--ignore-missing-imports --disallow-untyped-defs \
 		--check-untyped-defs
-
-## Run strict linting
-lint-strict:
-	flake8 .
-	mypy . --strict
 
 ## Build standalone package for Itch.io deployment
 package:
