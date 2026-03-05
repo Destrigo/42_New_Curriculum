@@ -1,0 +1,47 @@
+---
+title: "Pac-Man — Module Dependency Graph"
+---
+
+graph TD
+    ENTRY["🎮 pac-man.py<br/><i>Entry point</i>"]
+    GAME["game.py<br/><i>Orchestrator</i><br/>State machine · Game loop<br/>Collisions · Level loading"]
+    CONFIG["config.py<br/><i>Config loader</i><br/>JSON + comments<br/>Validation & defaults"]
+    MAZE["maze.py<br/><i>Maze integration</i><br/>mazegenerator wrapper<br/>Wall checks · Item placement"]
+    PLAYER["player.py<br/><i>Player</i><br/>Movement · Lives<br/>Animation"]
+    GHOST["ghost.py<br/><i>Ghost AI</i><br/>Chase / Flee<br/>4 personalities"]
+    SCORE["highscore.py<br/><i>Highscores</i><br/>Top 10 · JSON persistence<br/>Name validation"]
+    RENDER["renderer.py<br/><i>Renderer</i><br/>Pygame drawing<br/>Maze · Sprites · HUD · Menus"]
+    CONST["constants.py<br/><i>Constants</i><br/>Colors · Sizes · Wall encoding<br/>State names · Defaults"]
+    EXT["🔌 mazegenerator<br/><i>External package</i><br/>A-Maze-ing wheel"]
+
+    ENTRY --> GAME
+    GAME --> CONFIG
+    GAME --> MAZE
+    GAME --> PLAYER
+    GAME --> GHOST
+    GAME --> SCORE
+    GAME --> RENDER
+    GAME --> CONST
+
+    CONFIG --> CONST
+    MAZE --> CONST
+    MAZE -.-> EXT
+    PLAYER --> MAZE
+    PLAYER --> CONST
+    GHOST --> MAZE
+    GHOST --> CONST
+    SCORE -.- CONST
+    RENDER --> CONST
+    RENDER --> PLAYER
+    RENDER --> GHOST
+
+    style ENTRY fill:#FFD700,stroke:#B8860B,color:#000,stroke-width:3px
+    style GAME fill:#4169E1,stroke:#1E3A8A,color:#fff,stroke-width:3px
+    style EXT fill:#FF6347,stroke:#B22222,color:#fff,stroke-width:2px
+    style CONST fill:#2F4F4F,stroke:#1a1a1a,color:#fff
+    style CONFIG fill:#3CB371,stroke:#2E8B57,color:#fff
+    style MAZE fill:#9370DB,stroke:#6A0DAD,color:#fff
+    style PLAYER fill:#FFD700,stroke:#B8860B,color:#000
+    style GHOST fill:#FF4444,stroke:#B22222,color:#fff
+    style SCORE fill:#20B2AA,stroke:#008B8B,color:#fff
+    style RENDER fill:#FF8C00,stroke:#CC7000,color:#fff

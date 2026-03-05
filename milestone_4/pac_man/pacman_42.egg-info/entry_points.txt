@@ -1,0 +1,2 @@
+[console_scripts]
+pacman = src.game:main

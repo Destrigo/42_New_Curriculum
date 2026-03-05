@@ -1,0 +1,89 @@
+---
+title: "Pac-Man — Game Loop (each frame at 60 FPS)"
+---
+
+flowchart TD
+    START(["⏱️ Frame Start<br/>dt = clock.tick(60)"])
+    EVENTS["🎹 Handle Events<br/>Process keyboard input"]
+    STATE{"Current<br/>state?"}
+
+    %% Playing branch
+    DEAD{"Player<br/>dead?"}
+    DEATHTIMER["⏳ Death Pause<br/>Countdown 1 second"]
+    RESPAWN["🔄 Respawn<br/>Player → center<br/>Ghosts → corners"]
+
+    TIMER["⏰ Level Timer<br/>Count down each second"]
+    TIMEOUT{"Time<br/>= 0?"}
+    LOSELIFE["💔 Lose Life"]
+    LIVESCHECK{"Lives<br/>> 0?"}
+    GAMEOVER["💀 GAME OVER<br/>→ Enter Name"]
+    RESETLEVEL["🔄 Reset Positions<br/>Restart timer"]
+
+    PMOVE["🟡 Player Movement<br/>Every 160ms tick:<br/>1. Try queued direction<br/>2. Else continue current<br/>3. Else stand still"]
+    COLLECT{"Stepped<br/>on item?"}
+    PACGUM["🔵 Pacgum<br/>+10 pts"]
+    SUPER["🟡 Super-Pacgum<br/>+50 pts<br/>Frighten all ghosts"]
+
+    GMOVE["👻 Ghost Movement<br/>Every 260ms tick:<br/>Each ghost picks best move<br/>Chase / Flee / Random"]
+    GTIMERS["⏱️ Ghost Timers<br/>Update frighten countdowns<br/>Update respawn countdowns"]
+
+    COLLIDE["💥 Collision Check<br/>Player vs each ghost"]
+    GHOSTSTATE{"Ghost<br/>frightened?"}
+    EATGHOST["😋 Eat Ghost<br/>+200 pts<br/>Ghost → eaten state"]
+    GODCHECK{"God<br/>mode?"}
+    PLAYERHIT["💔 Player Hit<br/>Lose life → death pause"]
+
+    LEVELCHECK{"Pacgums<br/>left = 0?"}
+    LASTLEVEL{"Last<br/>level?"}
+    VICTORY["🏆 VICTORY<br/>→ Enter Name"]
+    NEXTLEVEL["📦 Load Next Level<br/>Carry score & lives"]
+
+    RENDER["🖼️ Render Frame<br/>Maze → Items → Ghosts<br/>→ Player → HUD → Overlays"]
+    FLIP["📺 Display flip"]
+    FRAMEEND(["🔁 Next frame"])
+
+    START --> EVENTS --> STATE
+
+    STATE -- "Menu / Scores /<br/>Instructions /<br/>Enter Name" --> RENDER
+    STATE -- "Paused" --> RENDER
+    STATE -- "Playing" --> DEAD
+
+    DEAD -- "Yes" --> DEATHTIMER
+    DEATHTIMER -- "Expired" --> RESPAWN --> RENDER
+    DEATHTIMER -- "Waiting" --> RENDER
+
+    DEAD -- "No" --> TIMER
+    TIMER --> TIMEOUT
+    TIMEOUT -- "No" --> PMOVE
+    TIMEOUT -- "Yes" --> LOSELIFE --> LIVESCHECK
+    LIVESCHECK -- "No" --> GAMEOVER
+    LIVESCHECK -- "Yes" --> RESETLEVEL --> PMOVE
+
+    PMOVE --> COLLECT
+    COLLECT -- "Pacgum" --> PACGUM --> GMOVE
+    COLLECT -- "Super" --> SUPER --> GMOVE
+    COLLECT -- "Empty" --> GMOVE
+
+    GMOVE --> GTIMERS --> COLLIDE
+    COLLIDE --> GHOSTSTATE
+    GHOSTSTATE -- "Yes" --> EATGHOST --> LEVELCHECK
+    GHOSTSTATE -- "No" --> GODCHECK
+    GODCHECK -- "Yes" --> LEVELCHECK
+    GODCHECK -- "No" --> PLAYERHIT --> RENDER
+
+    LEVELCHECK -- "No" --> RENDER
+    LEVELCHECK -- "Yes" --> LASTLEVEL
+    LASTLEVEL -- "Yes" --> VICTORY
+    LASTLEVEL -- "No" --> NEXTLEVEL --> RENDER
+
+    RENDER --> FLIP --> FRAMEEND
+
+    style START fill:#4CAF50,color:#fff,stroke-width:2px
+    style FRAMEEND fill:#4CAF50,color:#fff,stroke-width:2px
+    style GAMEOVER fill:#F44336,color:#fff,stroke-width:3px
+    style VICTORY fill:#FFD700,color:#000,stroke-width:3px
+    style RENDER fill:#2196F3,color:#fff,stroke-width:2px
+    style PMOVE fill:#FFEB3B,color:#000
+    style GMOVE fill:#FF5722,color:#fff
+    style COLLIDE fill:#E91E63,color:#fff
+    style SUPER fill:#FF9800,color:#000

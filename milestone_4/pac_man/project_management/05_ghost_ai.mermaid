@@ -1,0 +1,56 @@
+---
+title: "Pac-Man — Ghost AI Decision Flow"
+---
+
+flowchart TD
+    START(["👻 Ghost Move Tick"])
+
+    EATEN{"Is ghost<br/>eaten?"}
+    SKIP["⏭️ Skip movement<br/>Wait for respawn timer"]
+
+    GETMOVES["🔍 Get Valid Moves<br/>Check walls in N/E/S/W"]
+    ANYMOVES{"Any valid<br/>moves?"}
+    STUCK["🚫 Stay in place"]
+
+    FILTER["🔄 Filter Reverse<br/>Remove U-turn direction<br/>(unless only option)"]
+
+    FRIGHTENED{"Ghost<br/>frightened?"}
+
+    %% Flee branch
+    FLEE["🏃 Flee Mode<br/>Pick move that<br/>MAXIMIZES distance<br/>from player"]
+    FLEERNG{"Random<br/>roll < 25%?"}
+    FLEERANDOM["🎲 Pick random<br/>move instead"]
+
+    %% Chase branch
+    CHASE["🎯 Chase Mode<br/>Pick move that<br/>MINIMIZES distance<br/>to player"]
+    PERSONALITY{"Random roll<br/>< personality<br/>threshold?"}
+    CHASERANDOM["🎲 Pick random<br/>move instead"]
+
+    PTHRESH["Thresholds:<br/>🔴 Blinky: 10%<br/>🩷 Pinky: 20%<br/>🩵 Inky: 35%<br/>🟠 Clyde: 50%"]
+
+    EXECUTE["✅ Execute Move<br/>Update position & direction"]
+
+    START --> EATEN
+    EATEN -- "Yes" --> SKIP
+    EATEN -- "No" --> GETMOVES
+    GETMOVES --> ANYMOVES
+    ANYMOVES -- "No" --> STUCK
+    ANYMOVES -- "Yes" --> FILTER --> FRIGHTENED
+
+    FRIGHTENED -- "Yes" --> FLEE --> FLEERNG
+    FLEERNG -- "Yes" --> FLEERANDOM --> EXECUTE
+    FLEERNG -- "No" --> EXECUTE
+
+    FRIGHTENED -- "No" --> CHASE --> PERSONALITY
+    PERSONALITY -- "Yes" --> CHASERANDOM --> EXECUTE
+    PERSONALITY -- "No" --> EXECUTE
+
+    PTHRESH -.-> PERSONALITY
+
+    style START fill:#F44336,color:#fff,stroke-width:2px
+    style EXECUTE fill:#4CAF50,color:#fff,stroke-width:2px
+    style FLEE fill:#2196F3,color:#fff
+    style CHASE fill:#F44336,color:#fff
+    style PTHRESH fill:#333,color:#fff,stroke-dasharray:5
+    style FLEERANDOM fill:#FF9800,color:#000
+    style CHASERANDOM fill:#FF9800,color:#000

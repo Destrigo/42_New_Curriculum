@@ -1,13 +1,47 @@
-[
-    {
-        "width": 20,
-        "height": 20,
-        "lives": 3,
-        "pacgum": 42,
-        "points_per_pacgum": 10,
-        "points_per_super_pacgum": 50,
-        "points_per_ghost": 200,
-        "seed": 42,
-        "level_max_time": 90
-    }
-]
+# Pac-Man Configuration File
+# Lines starting with # are comments and will be ignored.
+# You may also use // for inline comments.
+
+{
+    # File where highscores are stored
+    "highscore_filename": "highscores.json",
+
+    # Player settings
+    "lives": 3,
+
+    # Scoring
+    "points_per_pacgum": 10,
+    "points_per_super_pacgum": 50,
+    "points_per_ghost": 200,
+
+    # Maze generation seed (used for level 1, others are random)
+    "seed": 42,
+
+    # Time limit per level in seconds
+    "level_max_time": 90,
+
+    # Duration of frightened mode in seconds
+    "frightened_duration": 8,
+
+    # Time for eaten ghosts to respawn in seconds
+    "ghost_respawn_time": 5,
+
+    # Default maze dimensions (used if levels array is missing)
+    "maze_width": 19,
+    "maze_height": 15,
+
+    # Level definitions: each level can have its own dimensions
+    # Mazes grow progressively larger
+    "levels": [
+        {"width": 19, "height": 15},
+        {"width": 19, "height": 15},
+        {"width": 21, "height": 15},
+        {"width": 21, "height": 15},
+        {"width": 21, "height": 17},
+        {"width": 21, "height": 17},
+        {"width": 23, "height": 17},
+        {"width": 23, "height": 17},
+        {"width": 23, "height": 19},
+        {"width": 25, "height": 19}
+    ]
+}

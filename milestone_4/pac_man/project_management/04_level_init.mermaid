@@ -1,0 +1,48 @@
+---
+title: "Pac-Man — Level Initialization Flow"
+---
+
+flowchart TD
+    START(["🎯 start_level(n, score, lives)"])
+
+    GETCONF["📋 Get Level Config<br/>Width & height from levels[n-1]"]
+
+    SEED{"Level<br/>= 1?"}
+    FIXEDSEED["🌱 Fixed Seed<br/>From config (default: 42)"]
+    RANDSEED["🎲 Random Seed<br/>randint(1, 999999)"]
+
+    GENMAZE["🏗️ Generate Maze<br/>mazegenerator.MazeGenerator(<br/>  size, perfect=False, seed<br/>)"]
+    FALLBACK{"Package<br/>OK?"}
+    USEFALLBACK["⚠️ Fallback Generator<br/>Built-in recursive backtracker"]
+    MAZEREADY["✅ Maze Ready<br/>2D grid with wall encoding"]
+
+    RESIZE["📐 Resize Renderer<br/>Adjust window to maze size"]
+
+    FINDPLAYER["🟡 Find Player Start<br/>Nearest walkable cell<br/>to maze center"]
+    FINDGHOSTS["👻 Find Ghost Starts<br/>Nearest walkable cells<br/>to 4 corners"]
+
+    PLACEITEMS["🔵 Place Items<br/>Pacgum on every walkable cell<br/>Super-pacgum near corners<br/>Clear player & ghost positions"]
+
+    CREATEPLAYER["🟡 Create Player<br/>Position, lives, carry score"]
+    CREATEGHOSTS["👻 Create 4 Ghosts<br/>Blinky · Pinky · Inky · Clyde<br/>Each at their home corner"]
+
+    RESETTIMERS["⏱️ Reset Timers<br/>Level countdown = 90s<br/>Move accumulators = 0<br/>Clear direction queue"]
+
+    READY(["✅ Level Ready<br/>→ STATE: PLAYING"])
+
+    START --> GETCONF --> SEED
+    SEED -- "Yes" --> FIXEDSEED --> GENMAZE
+    SEED -- "No" --> RANDSEED --> GENMAZE
+    GENMAZE --> FALLBACK
+    FALLBACK -- "Yes" --> MAZEREADY
+    FALLBACK -- "No" --> USEFALLBACK --> MAZEREADY
+    MAZEREADY --> RESIZE --> FINDPLAYER --> FINDGHOSTS --> PLACEITEMS
+    PLACEITEMS --> CREATEPLAYER --> CREATEGHOSTS --> RESETTIMERS --> READY
+
+    style START fill:#4CAF50,color:#fff,stroke-width:2px
+    style READY fill:#4CAF50,color:#fff,stroke-width:2px
+    style GENMAZE fill:#9C27B0,color:#fff,stroke-width:2px
+    style USEFALLBACK fill:#FF9800,color:#000
+    style PLACEITEMS fill:#2196F3,color:#fff
+    style CREATEPLAYER fill:#FFEB3B,color:#000
+    style CREATEGHOSTS fill:#F44336,color:#fff

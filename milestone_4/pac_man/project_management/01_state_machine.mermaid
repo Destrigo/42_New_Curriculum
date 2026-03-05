@@ -1,0 +1,39 @@
+---
+title: "Pac-Man — Architecture & Flow Diagrams"
+---
+
+%% ═══════════════════════════════════════════════
+%%  1. GAME STATE MACHINE
+%% ═══════════════════════════════════════════════
+
+stateDiagram-v2
+    direction TB
+
+    [*] --> Menu : Launch game
+
+    Menu --> Playing : Start Game
+    Menu --> Highscores : View Highscores
+    Menu --> Instructions : View Instructions
+    Menu --> [*] : Exit
+
+    Highscores --> Menu : ESC
+
+    Instructions --> Menu : ESC
+
+    Playing --> Paused : ESC / P
+    Playing --> EnterName : All lives lost\n(Game Over)
+    Playing --> EnterName : All levels cleared\n(Victory)
+    Playing --> Playing : Level complete\n→ load next level
+
+    Paused --> Playing : Resume
+    Paused --> Menu : Main Menu
+
+    EnterName --> Menu : Save highscore\n(ENTER)
+
+    state Playing {
+        direction LR
+        [*] --> Alive
+        Alive --> DeathPause : Ghost collision\n(lives > 0)
+        DeathPause --> Alive : 1s timeout\n→ respawn
+        Alive --> Alive : Move / Eat / Collide
+    }

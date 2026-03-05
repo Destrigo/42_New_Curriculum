@@ -1,3 +1,12 @@
+Metadata-Version: 2.4
+Name: pacman-42
+Version: 1.0.0
+Summary: A Pac-Man game built in Python with Pygame
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pygame>=2.5.0
+
 *This project has been created as part of the 42 curriculum by mtaranti.*
 
 # Pac-Man
