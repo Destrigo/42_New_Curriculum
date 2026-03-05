@@ -20,6 +20,7 @@ class Chunk:
 
 class PythonChunker:
     """Chunks Python code using AST for intelligent splitting."""
+
     def __init__(self, max_chunk_size: int = 2000) -> None:
         """
         Initialize Python chunker.
@@ -38,6 +39,7 @@ class PythonChunker:
             List of chunks
         """
         chunks: List[Chunk] = []
+
         try:
             # Parse AST
             tree = ast.parse(content)
@@ -50,12 +52,16 @@ class PythonChunker:
                         end_line = node.end_lineno
                     else:
                         end_line = start_line + 1
+
                     # Get character indices
                     lines = content.split('\n')
                     start_char = sum(len(line) + 1
                                      for line in lines[:start_line])
-                    end_char = sum(len(line) + 1 for line in lines[:end_line])
+                    end_char = sum(len(line) + 1
+                                   for line in lines[:end_line])
+
                     chunk_content = content[start_char:end_char]
+
                     # If chunk is too large, split it
                     if len(chunk_content) > self.max_chunk_size:
                         # Fall back to simple splitting
@@ -66,7 +72,10 @@ class PythonChunker:
                         )
                         chunks.extend(sub_chunks)
                     else:
-                        chunk_type = "function" if isinstance(node, ast.FunctionDef) else "class"
+                        if isinstance(node, ast.FunctionDef):
+                            chunk_type = "function"
+                        else:
+                            chunk_type = "class"
                         chunks.append(Chunk(
                             file_path=file_path,
                             content=chunk_content,
@@ -82,6 +91,7 @@ class PythonChunker:
         except SyntaxError:
             # If parsing fails, fall back to simple chunking
             chunks = self._simple_chunk(content, file_path)
+
         return chunks
 
     def _split_large_chunk(
@@ -96,13 +106,11 @@ class PythonChunker:
 
         while current_pos < len(content):
             end_pos = min(current_pos + self.max_chunk_size, len(content))
-
             # Try to break at newline
             if end_pos < len(content):
                 newline_pos = content.rfind('\n', current_pos, end_pos)
                 if newline_pos > current_pos:
                     end_pos = newline_pos + 1
-
             chunk_content = content[current_pos:end_pos]
             chunks.append(Chunk(
                 file_path=file_path,
@@ -111,8 +119,6 @@ class PythonChunker:
                 last_character_index=start_offset + end_pos,
                 chunk_type="code"
             ))
-            # overlap = 200  # 200 caratteri di overlap
-            # current_pos = max(current_pos, end_pos - overlap)
             current_pos = end_pos
         return chunks
 
@@ -144,6 +150,7 @@ class PythonChunker:
 
 class TextChunker:
     """Chunks text/markdown files by semantic units."""
+
     def __init__(self, max_chunk_size: int = 2000) -> None:
         """
         Initialize text chunker.
@@ -162,7 +169,6 @@ class TextChunker:
             List of chunks
         """
         chunks: List[Chunk] = []
-
         # Try to split by markdown headers first
         if self._is_markdown(file_path):
             chunks = self._chunk_markdown(content, file_path)
@@ -179,7 +185,7 @@ class TextChunker:
         chunks: List[Chunk] = []
         lines = content.split('\n')
 
-        current_chunk = []
+        current_chunk: list = []
         current_start = 0
         current_pos = 0
 
@@ -236,6 +242,7 @@ class TextChunker:
                 last_character_index=current_pos,
                 chunk_type="text"
             ))
+
         return chunks if chunks else self._chunk_paragraphs(content, file_path)
 
     def _chunk_paragraphs(self, content: str, file_path: str) -> List[Chunk]:
@@ -243,7 +250,7 @@ class TextChunker:
         chunks: List[Chunk] = []
         paragraphs = content.split('\n\n')
 
-        current_chunk = []
+        current_chunk: list = []
         current_start = 0
         current_pos = 0
 
@@ -286,6 +293,7 @@ class TextChunker:
 
 class AdaptiveChunker:
     """Chooses appropriate chunker based on file type."""
+
     def __init__(self, max_chunk_size: int = 2000) -> None:
         """
         Initialize adaptive chunker.
@@ -304,12 +312,14 @@ class AdaptiveChunker:
             List of chunks
         """
         file_path = Path(file_path)
+
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
         except Exception as e:
             print(f"Error reading {file_path}: {e}")
             return []
+
         file_path_str = str(file_path)
 
         # Choose chunker based on file extension

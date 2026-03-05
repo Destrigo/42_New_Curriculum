@@ -2,6 +2,7 @@
 BM25-based retrieval system for code and documentation search.
 """
 
+import re
 import pickle
 from pathlib import Path
 from typing import List
@@ -16,6 +17,7 @@ from src.models import MinimalSource
 @dataclass
 class IndexedChunk:
     """Chunk with additional index metadata."""
+
     chunk: Chunk
     doc_id: int
     tokens: List[str]
@@ -23,9 +25,11 @@ class IndexedChunk:
 
 class BM25Retriever:
     """BM25-based retrieval system."""
+
     def __init__(self, max_chunk_size: int = 2000) -> None:
         """
         Initialize BM25 retriever.
+
         Args:
             max_chunk_size: Maximum chunk size for chunking
         """
@@ -35,21 +39,45 @@ class BM25Retriever:
 
     def tokenize(self, text: str) -> List[str]:
         """
-        Simple tokenization.
+        Tokenize text for BM25 indexing and querying.
+
+        Uses regex to split on non-alphanumeric chars (preserves underscores).
+        Removes short tokens and common stopwords.
+
         Args:
             text: Text to tokenize
+
         Returns:
             List of tokens
         """
         text = text.lower()
-
-        # Split on non-alphanumeric
-        import re
+        # \w+ matches word chars including underscore -> good for code
         tokens = re.findall(r'\w+', text)
-        # Remove stopwords (optional)
-        stopwords = {'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or'}
-        tokens = [t for t in tokens if t not in stopwords]
-        return tokens
+        # Remove stopwords and single chars
+        stopwords = {
+            'the', 'a', 'an', 'in', 'on', 'at', 'to',
+            'for', 'of', 'and', 'or', 'is', 'are', 'was',
+            'were', 'be', 'been', 'by', 'with', 'from', 'as'
+        }
+        return [t for t in tokens if t not in stopwords and len(t) > 1]
+
+    def _normalize_path(self, file_path: Path) -> str:
+        """
+        Normalize file path to match ground truth format.
+
+        Ground truth uses relative paths like:
+            data/raw/vllm-0.10.1/docs/features/lora.md
+
+        Args:
+            file_path: Path to normalize
+
+        Returns:
+            Normalized string path
+        """
+        try:
+            return str(file_path.relative_to(Path.cwd()))
+        except ValueError:
+            return str(file_path)
 
     def index_directory(
         self,
@@ -58,37 +86,53 @@ class BM25Retriever:
     ) -> None:
         """
         Index all files in a directory.
+
         Args:
             directory: Directory to index
             extensions: File extensions to index (default: ['.py', '.md'])
         """
         if extensions is None:
             extensions = ['.py', '.md', '.txt', '.rst']
+
         directory = Path(directory)
 
         # Find all files
-        files = []
+        files: List[Path] = []
         for ext in extensions:
             files.extend(directory.rglob(f'*{ext}'))
+
         print(f"Found {len(files)} files to index")
 
         # Chunk all files
         all_chunks: List[Chunk] = []
         for file_path in tqdm(files, desc="Chunking files"):
             chunks = self.chunker.chunk_file(file_path)
+
+            # Normalize paths to match ground truth format
+            for chunk in chunks:
+                try:
+                    p = Path(chunk.file_path)
+                    chunk.file_path = self._normalize_path(p)
+                except Exception:
+                    pass
+
             all_chunks.extend(chunks)
+
         print(f"Created {len(all_chunks)} chunks")
 
         # Create indexed chunks with tokens
         self.indexed_chunks = []
         corpus_tokens = []
+
         for doc_id, chunk in enumerate(tqdm(all_chunks, desc="Tokenizing")):
             tokens = self.tokenize(chunk.content)
+
             indexed_chunk = IndexedChunk(
                 chunk=chunk,
                 doc_id=doc_id,
                 tokens=tokens
             )
+
             self.indexed_chunks.append(indexed_chunk)
             corpus_tokens.append(tokens)
 
@@ -100,16 +144,18 @@ class BM25Retriever:
     def search(self, query: str, k: int = 5) -> List[MinimalSource]:
         """
         Search for relevant chunks.
+
         Args:
             query: Search query
             k: Number of results to return
+
         Returns:
             List of MinimalSource results
         """
         if self.bm25 is None:
             raise ValueError("Index not built. Call index_directory first.")
 
-        # Tokenize query
+        # Tokenize query (same tokenizer as indexing!)
         query_tokens = self.tokenize(query)
 
         # Get BM25 scores
@@ -127,17 +173,20 @@ class BM25Retriever:
         for idx in top_k_indices:
             indexed_chunk = self.indexed_chunks[idx]
             chunk = indexed_chunk.chunk
+
             result = MinimalSource(
                 file_path=chunk.file_path,
                 first_character_index=chunk.first_character_index,
                 last_character_index=chunk.last_character_index
             )
             results.append(result)
+
         return results
 
     def save_index(self, save_path: str | Path) -> None:
         """
         Save index to disk.
+
         Args:
             save_path: Path to save index
         """
@@ -151,11 +200,13 @@ class BM25Retriever:
 
         with open(save_path, 'wb') as f:
             pickle.dump(index_data, f)
+
         print(f"Index saved to {save_path}")
 
     def load_index(self, load_path: str | Path) -> None:
         """
         Load index from disk.
+
         Args:
             load_path: Path to load index from
         """

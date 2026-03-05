@@ -1,7 +1,6 @@
 """
 Evaluation metrics for RAG system.
 """
-
 from src.models import (
     MinimalSource,
     StudentSearchResults,
@@ -13,48 +12,55 @@ from src.models import (
 def calculate_overlap(
     retrieved: MinimalSource,
     ground_truth: MinimalSource,
-    min_overlap: float = 0.05
+    min_iou_threshold: float = 0.01
 ) -> bool:
     """
-    Check if two sources have at least min_overlap (default 5%).
+    Check if two sources overlap with IoU (Intersection over Union).
+
+    Uses Jaccard similarity: IoU = intersection / union
+    This matches the official moulinette evaluation metric.
     Args:
         retrieved: Retrieved source
         ground_truth: Ground truth source
-        min_overlap: Minimum overlap percentage (default 0.05 = 5%)
+        min_iou_threshold: Minimum IoU threshold (default 0.01 = 1%)
     Returns:
-        True if overlap >= min_overlap, False otherwise
+        True if IoU >= min_iou_threshold, False otherwise
     """
     # Must be same file
     if retrieved.file_path != ground_truth.file_path:
         return False
 
-    # Calculate intersection
-    start = max(
-        retrieved.first_character_index,
-        ground_truth.first_character_index
+    # Calculate lengths
+    retrieved_len = (
+        retrieved.last_character_index -
+        retrieved.first_character_index
     )
-    end = min(
-        retrieved.last_character_index,
-        ground_truth.last_character_index
-    )
-
-    # Overlap length
-    overlap_length = max(0, end - start)
-
-    # Ground truth length
-    gt_length = (
+    gt_len = (
         ground_truth.last_character_index -
         ground_truth.first_character_index
     )
-
     # Avoid division by zero
-    if gt_length == 0:
+    if retrieved_len == 0 or gt_len == 0:
+        return False
+    # Calculate intersection
+    intersection_start = max(
+        retrieved.first_character_index,
+        ground_truth.first_character_index
+    )
+    intersection_end = min(
+        retrieved.last_character_index,
+        ground_truth.last_character_index
+    )
+    intersection = max(0, intersection_end - intersection_start)
+    # Calculate IoU (Intersection over Union / Jaccard similarity)
+    # IoU = intersection / (len1 + len2 - intersection)
+    union = retrieved_len + gt_len - intersection
+    if union == 0:
         return False
 
-    # Calculate overlap percentage
-    overlap_percentage = overlap_length / gt_length
+    iou = intersection / union
 
-    return overlap_percentage >= min_overlap
+    return iou >= min_iou_threshold
 
 
 def calculate_recall_at_k(
@@ -73,6 +79,7 @@ def calculate_recall_at_k(
     """
     total_questions = 0
     total_recall = 0.0
+
     # Create mapping of question_id to ground truth
     gt_map = {
         q.question_id: q
@@ -83,18 +90,14 @@ def calculate_recall_at_k(
     for result in student_results.search_results:
         # Get ground truth for this question
         gt_question = gt_map.get(result.question_id)
-
         if gt_question is None:
             continue
-
         # Only process AnsweredQuestions
         if not isinstance(gt_question, AnsweredQuestion):
             continue
-
         # Take top-k retrieved sources
         top_k_sources = result.retrieved_sources[:k]
         gt_sources = gt_question.sources
-
         # Count how many GT sources were found
         found_count = 0
         for gt_src in gt_sources:
@@ -112,6 +115,7 @@ def calculate_recall_at_k(
     # Return average recall
     if total_questions == 0:
         return 0.0
+
     return total_recall / total_questions
 
 
@@ -136,4 +140,5 @@ def evaluate_search_results(
             k
         )
         results[f"recall@{k}"] = recall
+
     return results

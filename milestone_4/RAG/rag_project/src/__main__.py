@@ -21,6 +21,7 @@ from src.utils import load_json, save_json
 
 class RAGSystem:
     """Main RAG system CLI."""
+
     def __init__(self) -> None:
         """Initialize RAG system."""
         self.retriever: BM25Retriever | None = None
@@ -43,10 +44,27 @@ class RAGSystem:
 
         # Initialize retriever
         self.retriever = BM25Retriever(max_chunk_size=max_chunk_size)
-        self.retriever.index_directory(source_dir)  # Index directory
-        self.retriever.save_index(self.index_path)  # Save index
+
+        # Index directory
+        self.retriever.index_directory(source_dir)
+
+        # Save index
+        self.retriever.save_index(self.index_path)
 
         print(f"Ingestion complete! Index saved to {self.index_path}")
+
+    def ingest(
+        self,
+        source_dir: str = "data/raw/vllm-0.10.1",
+        max_chunk_size: int = 2000
+    ) -> None:
+        """
+        Ingest repository (alias for index command).
+        Args:
+            source_dir: Directory containing source code
+            max_chunk_size: Maximum chunk size in characters
+        """
+        return self.index(source_dir=source_dir, max_chunk_size=max_chunk_size)
 
     def search(self, query: str, k: int = 10) -> None:
         """
@@ -55,17 +73,20 @@ class RAGSystem:
             query: Search query
             k: Number of results to return
         """
+        # Load retriever
+        if self.retriever is None:
+            self.retriever = BM25Retriever()
+            self.retriever.load_index(self.index_path)
 
-        self._ensure_retriever()  # Load retriever
         # Search
-        results = self.retriever.search(query, k=k)  # type: ignore
+        results = self.retriever.search(query, k=k)
 
         # Print results
         print(f"\nTop {k} results for: {query}\n")
         for i, result in enumerate(results, 1):
             print(f"{i}. {result.file_path}")
-            print(f"   Characters: {result.first_character_index}-"
-                  f"{result.last_character_index}")
+            asd = result.first_character_index
+            print(f"   Characters: {asd}-{result.last_character_index}")
             print()
 
     def search_dataset(
@@ -82,7 +103,9 @@ class RAGSystem:
             save_directory: Directory to save results
         """
         # Load retriever
-        self._ensure_retriever()
+        if self.retriever is None:
+            self.retriever = BM25Retriever()
+            self.retriever.load_index(self.index_path)
 
         # Load dataset
         print(f"Loading dataset from {dataset_path}")
@@ -90,15 +113,15 @@ class RAGSystem:
 
         # Process all questions
         search_results = []
+
         for question_obj in tqdm(dataset.rag_questions, desc="Searching"):
             # Search
             retrieved_sources = self.retriever.search(question_obj.question,
-                                                      k=k)  # type: ignore
+                                                      k=k)
 
             # Create result
             result = MinimalSearchResults(
                 question_id=question_obj.question_id,
-                question=question_obj.question,
                 retrieved_sources=retrieved_sources
             )
             search_results.append(result)
@@ -118,7 +141,7 @@ class RAGSystem:
     def answer_dataset(
         self,
         student_search_results_path: str,
-        save_directory: str = "data/output/search_results_and_answer"
+        save_directory: str = "data/output/answers"
     ) -> None:
         """
         Generate answers from search results.
@@ -127,7 +150,8 @@ class RAGSystem:
             save_directory: Directory to save results
         """
         # Load generator
-        self._ensure_generator()
+        if self.generator is None:
+            self.generator = AnswerGenerator()
 
         # Load search results
         print(f"Loading search results from {student_search_results_path}")
@@ -136,21 +160,40 @@ class RAGSystem:
 
         print(f"Loaded {len(search_results.search_results)} questions")
 
+        # We need to load the original dataset to get questions
+        # Infer dataset path from search results path
+        dataset_path = student_search_results_path.replace(
+            "data/output/search_results",
+            "datasets/UnansweredQuestions"
+        )
+        try:
+            dataset = load_json(dataset_path, RagDataset)
+            # Create question_id -> question mapping
+            question_map = {q.question_id: q.question
+                            for q in dataset.rag_questions}
+        except Exception as e:
+            print(f"Warning: Could not load dataset from {dataset_path}: {e}")
+            print("Using placeholder questions")
+            question_map = {}
+
         # Generate answers
         answers_results = []
 
         for result in tqdm(search_results.search_results,
                            desc="Generating answers"):
+            # Get question text from map or use placeholder
+            question_text = question_map.get(result.question_id,
+                                             "Question not available")
+
             # Generate answer
-            answer = self.generator.answer_from_sources(  # type: ignore
-                question=result.question,
+            answer = self.generator.answer_from_sources(
+                question=question_text,
                 sources=result.retrieved_sources
             )
 
             # Create answer result
             answer_result = MinimalAnswer(
                 question_id=result.question_id,
-                question=result.question,
                 retrieved_sources=result.retrieved_sources,
                 answer=answer
             )
@@ -166,6 +209,7 @@ class RAGSystem:
         dataset_name = Path(student_search_results_path).name
         output_path = Path(save_directory) / dataset_name
         save_json(output, output_path)
+
         print(f"\nSaved answers to {output_path}")
 
     def evaluate(
@@ -188,10 +232,10 @@ class RAGSystem:
 
         # Validate
         print("\nStudent data is valid: True")
-        print(f"Total number of questions: {len(student_results.search_results)
-                                            }")
-        print("Total number of questions with student "
-              f"sources: {len(student_results.search_results)}")
+        print("Total number of questions"
+              f": {len(student_results.search_results)}")
+        print("Total number of questions "
+              f"with student sources: {len(student_results.search_results)}")
 
         # Evaluate
         results = evaluate_search_results(student_results, ground_truth)
@@ -213,15 +257,17 @@ class RAGSystem:
             k: Number of sources to retrieve
         """
         # Load retriever and generator
-        self._ensure_retriever()
-        self._ensure_generator()
+        if self.retriever is None:
+            self.retriever = BM25Retriever()
+            self.retriever.load_index(self.index_path)
+        if self.generator is None:
+            self.generator = AnswerGenerator()
 
         # Retrieve
-        sources = self.retriever.search(query, k=k)  # type: ignore
+        sources = self.retriever.search(query, k=k)
 
         # Generate answer
-        answer = self.generator.answer_from_sources(query,
-                                                    sources)  # type: ignore
+        answer = self.generator.answer_from_sources(query, sources)
 
         # Print
         print(f"\nQuestion: {query}\n")
@@ -230,16 +276,16 @@ class RAGSystem:
         for i, source in enumerate(sources, 1):
             print(f"{i}. {source.file_path}")
 
-    def _ensure_retriever(self) -> None:
-        """Ensure retriever is loaded."""
-        if self.retriever is None:
-            self.retriever = BM25Retriever()
-            self.retriever.load_index(self.index_path)
+    # def _ensure_retriever(self) -> None:
+    #     """Ensure retriever is loaded."""
+    #     if self.retriever is None:
+    #         self.retriever = BM25Retriever()
+    #         self.retriever.load_index(self.index_path)
 
-    def _ensure_generator(self) -> None:
-        """Ensure generator is loaded."""
-        if self.generator is None:
-            self.generator = AnswerGenerator()
+    # def _ensure_generator(self) -> None:
+    #     """Ensure generator is loaded."""
+    #     if self.generator is None:
+    #         self.generator = AnswerGenerator()
 
 
 def main() -> None:

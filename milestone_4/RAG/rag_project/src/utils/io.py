@@ -4,13 +4,13 @@ Utility functions for file I/O and data handling.
 
 import json
 from pathlib import Path
-from typing import TypeVar, Type
+from typing import Any, TypeVar, Type
 from pydantic import BaseModel
 
 T = TypeVar('T', bound=BaseModel)
 
 
-def load_json(filepath: str | Path, model_class: Type[T]) -> T:
+def load_json(filepath: str | Path, model_class: Type[T]) -> Any:
     """
     Load and validate JSON file using Pydantic model.
     Args:
@@ -23,17 +23,14 @@ def load_json(filepath: str | Path, model_class: Type[T]) -> T:
 
     if not filepath.exists():
         raise FileNotFoundError(f"File not found: {filepath}")
-
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
-
     return model_class(**data)
 
 
 def save_json(data: BaseModel, filepath: str | Path) -> None:
     """
     Save Pydantic model to JSON file.
-
     Args:
         data: Pydantic model instance
         filepath: Path to save JSON file
@@ -53,8 +50,10 @@ def save_json(data: BaseModel, filepath: str | Path) -> None:
 def ensure_dir(dirpath: str | Path) -> Path:
     """
     Ensure directory exists, create if necessary.
+
     Args:
         dirpath: Directory path
+
     Returns:
         Path object
     """
