@@ -1,0 +1,162 @@
+*This project has been created as part of the 42 curriculum by mtaranti.*
+
+# Pac-Man
+
+A complete, playable Pac-Man game built in Python using Pygame, with maze generation powered by the external A-Maze-ing (`mazegenerator`) package.
+
+## Description
+
+This project recreates the classic Pac-Man arcade game with modern Python architecture. The player navigates procedurally generated mazes, eating pacgums while avoiding four ghosts with distinct AI personalities. The game features 10 progressively larger levels, a persistent highscore system, a cheat mode for reviewers, and a full graphical UI with menus, HUD, and end screens.
+
+## Instructions
+
+### Prerequisites
+
+- Python 3.10 or later
+- pip (or uv/pipx)
+- The assigned `mazegenerator` wheel file
+
+### Installation
+
+```bash
+# Place the mazegenerator wheel in the project root, then:
+make install
+```
+
+### Running the Game
+
+```bash
+make run
+# Or directly:
+python3 pac-man.py config.json
+```
+
+### Debug Mode
+
+```bash
+make debug
+```
+
+### Linting
+
+```bash
+make lint         # flake8 + mypy standard
+make lint-strict  # flake8 + mypy --strict
+```
+
+### Controls
+
+| Key              | Action                  |
+|------------------|-------------------------|
+| Arrow Keys / WASD| Move Pac-Man            |
+| ESC / P          | Pause / Resume          |
+| 1                | Toggle god mode         |
+| 2                | Toggle ghost freeze     |
+| 3                | Toggle speed boost      |
+| 4                | Skip current level      |
+| 5                | Add extra life          |
+
+## Configuration
+
+The game reads a JSON configuration file passed as its only argument. The file supports comments (lines starting with `#`, `//` inline, and `/* */` block comments).
+
+### Config Keys and Defaults
+
+| Key                       | Type  | Default | Description                            |
+|---------------------------|-------|---------|----------------------------------------|
+| `highscore_filename`      | str   | `"highscores.json"` | Path to highscore storage   |
+| `lives`                   | int   | 3       | Starting lives                         |
+| `points_per_pacgum`       | int   | 10      | Points for eating a pacgum             |
+| `points_per_super_pacgum` | int   | 50      | Points for eating a super-pacgum       |
+| `points_per_ghost`        | int   | 200     | Points for eating a frightened ghost   |
+| `seed`                    | int   | 42      | Maze seed for level 1                  |
+| `level_max_time`          | int   | 90      | Time limit per level (seconds)         |
+| `frightened_duration`     | int   | 8       | Frightened ghost duration (seconds)    |
+| `ghost_respawn_time`      | int   | 5       | Eaten ghost respawn delay (seconds)    |
+| `maze_width`              | int   | 19      | Default maze width                     |
+| `maze_height`             | int   | 15      | Default maze height                    |
+| `levels`                  | array | (10 levels) | Array of `{"width": N, "height": M}` |
+
+On invalid or missing values, the game clamps to safe defaults and logs a message. Unknown keys are ignored. The game never crashes on bad config.
+
+## Highscore
+
+The highscore system stores the top 10 scores in a JSON file (default: `highscores.json`).
+
+- Scores are loaded at game start and saved after each game ends.
+- Player names are limited to 10 alphanumeric characters (plus spaces).
+- The file is robust to corruption: if the file is missing or invalid, the system starts fresh without crashing.
+- After each game (win or lose), the player is prompted to enter their name, and their score is inserted into the sorted list.
+
+We chose a simple JSON file for persistence because it is human-readable, easy to debug, and requires no external database dependencies.
+
+## Maze Generation
+
+Mazes are generated using the assigned **A-Maze-ing** (`mazegenerator`) package:
+
+- The package is used **as-is** without modification.
+- Level 1 uses a fixed seed from the config (default: 42) for reproducibility.
+- Subsequent levels use random seeds for variety.
+- The `perfect` parameter is set to `False` to produce imperfect mazes with loops, suitable for Pac-Man gameplay.
+- Each cell in the maze uses bitwise wall encoding: N=1, E=2, S=4, W=8, with 15 being a solid block.
+- If the package fails to load or generate, a fallback generator is used to ensure the game remains playable.
+
+The `MazeGenerator` class is instantiated with `size=(width, height)`, `perfect=False`, `entry_cell=(0,0)`, `exit_cell=(w-1, h-1)`, and the appropriate `seed`.
+
+## Implementation
+
+The game is structured as a set of Python modules under the `src/` package:
+
+- **Tick-based game loop**: Runs at 60 FPS using Pygame's clock. Player and ghost movement use separate accumulators to control movement speed independently.
+- **Player**: Grid-based movement with direction queuing (the next direction is buffered so it executes at the next valid intersection).
+- **Ghosts**: Four ghosts with distinct personality weights. Each ghost picks the move that minimizes (chase) or maximizes (flee) Manhattan distance to the player, with a per-ghost probability of making a random move instead. Ghosts avoid reversing direction unless it's the only option.
+- **Collision**: Checked after each movement tick. Frightened ghosts are eaten (score bonus + respawn timer), normal ghosts kill the player.
+- **Level progression**: When all pacgums are eaten, the next level loads with carried score and lives. Maze dimensions increase progressively.
+
+## General Software Architecture
+
+```
+pac-man.py              Main entry point (arg parsing, error handling)
+build.py                Packaging script (PyInstaller → Itch.io)
+config.json             Default game configuration
+src/
+├── __init__.py
+├── constants.py        Shared constants (colors, sizes, wall encoding, states)
+├── config.py           JSON config loader with comment stripping & validation
+├── maze.py             Maze generation wrapper (mazegenerator integration)
+├── player.py           Player class (movement, animation, lives)
+├── ghost.py            Ghost class (AI personalities, frightened/eaten states)
+├── highscore.py        Persistent highscore manager (JSON file I/O)
+├── renderer.py         Pygame rendering (maze, sprites, HUD, menus)
+└── game.py             Game orchestrator (state machine, main loop, collisions)
+```
+
+The architecture follows separation of concerns: each module handles one responsibility. The `Game` class in `game.py` acts as the orchestrator, managing state transitions and connecting all modules. The `Renderer` is decoupled from game logic, receiving data to draw rather than querying it.
+
+## Packaging & Deployment
+
+The game can be packaged into a standalone executable for distribution on Itch.io:
+
+```bash
+make package
+# Or manually:
+pip install pyinstaller
+python3 build.py
+```
+
+This produces a `dist/pacman-42/` directory and a `dist/pacman-42.zip` archive ready for upload to Itch.io as a free, unlisted build. The archive contains the executable, `config.json`, `README.md`, and an `INSTRUCTIONS.txt` with controls and options.
+
+To regenerate the package during peer review, simply run `make package` again.
+
+## Project Management
+
+Project management documents are located in the `project_management/` directory. See that directory for timeline, progress tracking, risk analysis, and team organization details.
+
+## Resources
+
+- [Pac-Man on Wikipedia](https://en.wikipedia.org/wiki/Pac-Man)
+- [The Pac-Man Dossier (ghost AI)](https://www.gamedeveloper.com/design/the-pac-man-dossier)
+- [Pygame Documentation](https://www.pygame.org/docs/)
+- [Python typing module](https://docs.python.org/3/library/typing.html)
+
+**AI Usage**: AI was used to assist with boilerplate code generation (config parsing, file I/O), drafting docstrings, and reviewing architecture decisions. All generated code was reviewed, understood, and tested by the team. Core game logic (ghost AI, collision detection, maze integration) was designed and implemented by the team with AI assistance for iteration.

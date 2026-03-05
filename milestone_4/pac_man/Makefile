@@ -68,4 +68,4 @@ lint:
 ## Build standalone package for Itch.io deployment
 package:
 	uv add pyinstaller
-	$(PYTHON) build.py
+	uv run build.py

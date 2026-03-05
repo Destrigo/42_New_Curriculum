@@ -1,0 +1,18 @@
+PAC-MAN
+=======
+
+Controls:
+  Arrow Keys / WASD  - Move Pac-Man
+  ESC / P            - Pause
+  1                  - God mode (invincible)
+  2                  - Freeze ghosts
+  3                  - Speed boost
+  4                  - Skip level
+  5                  - Extra life
+
+Configuration:
+  Edit config.json to change game settings.
+
+How to launch:
+  Run the pacman-42 executable in this directory.
+  Or from source: python3 pac-man.py config.json
