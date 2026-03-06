@@ -105,7 +105,7 @@ class Game:
         self.queued_direction: Optional[str] = None
 
     def _get_level_config(self, level_num: int
-                          ) -> dict[str, int]:
+                          ) -> Any:
         """Get maze dimensions for a given level.
 
         Args:

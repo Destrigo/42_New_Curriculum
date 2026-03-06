@@ -15,7 +15,7 @@ from src.constants import (
 
 
 def generate_maze(width: int, height: int, seed: int,
-                  perfect: bool = False) -> list[list[int]]:
+                  perfect: bool = False) -> Any:
     """Generate a maze using the mazegenerator package.
 
     Args:

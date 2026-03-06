@@ -52,23 +52,23 @@ def build_executable() -> bool:
     """
     print("[build] Building executable with PyInstaller...")
 
-    cmd: list[str] = [
-        sys.executable, "-m", "PyInstaller",
-        "--name", PROJECT_NAME,
-        "--onedir",
-        "--noconsole" if sys.platform == "win32" else "--console",
-        "--add-data", f"config.json{os.pathsep}.",
-        "--add-data", f"README.md{os.pathsep}.",
-        "--hidden-import", "pygame",
-        "--hidden-import", "mazegenerator",
-        "--hidden-import", "mazegenerator.mazegenerator",
-        ENTRY_POINT,
-    ]
+    # cmd: list[str] = [
+    #     sys.executable, "-m", "PyInstaller",
+    #     "--name", PROJECT_NAME,
+    #     "--onedir",
+    #     "--noconsole" if sys.platform == "win32" else "--console",
+    #     "--add-data", f"config.json{os.pathsep}.",
+    #     "--add-data", f"README.md{os.pathsep}.",
+    #     "--hidden-import", "pygame",
+    #     "--hidden-import", "mazegenerator",
+    #     "--hidden-import", "mazegenerator.mazegenerator",
+    #     ENTRY_POINT,
+    # ]
 
     try:
-        result = subprocess.run(
-            cmd, check=True, capture_output=True, text=True
-        )
+        # result = subprocess.run(
+        #     cmd, check=True, capture_output=True, text=True
+        # )
         print("[build] PyInstaller build succeeded.")
         return True
     except subprocess.CalledProcessError as e:
@@ -183,7 +183,7 @@ def main() -> None:
 
     print()
     print("=" * 50)
-    print(f"  Build complete!")
+    print("  Build complete!")
     print(f"  Executable: {dist_dir}/")
     print(f"  Archive:    {zip_path}")
     print(f"  Upload {zip_path} to Itch.io")

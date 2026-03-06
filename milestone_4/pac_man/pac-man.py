@@ -9,7 +9,6 @@ Any errors in the config are handled gracefully with defaults.
 """
 
 import sys
-import os
 
 
 def main() -> None:

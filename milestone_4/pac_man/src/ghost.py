@@ -164,11 +164,11 @@ class Ghost:
                 pick = random.choice(moves)
         else:
             # Chase: minimize distance to player
-            best_dist = float("inf")
+            best_d = float("inf")
             for d, nx, ny in moves:
                 dist = abs(nx - player_x) + abs(ny - player_y)
-                if dist < best_dist:
-                    best_dist = dist
+                if dist < best_d:
+                    best_d = dist
                     pick = (d, nx, ny)
             # Personality randomness
             chance = RANDOM_CHANCE[self.id] if self.id < 4 else 0.2
