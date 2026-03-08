@@ -23,23 +23,10 @@ from src.ghost import Ghost
 
 
 class Renderer:
-    """Handles all pygame rendering.
-
-    Attributes:
-        screen: The pygame display surface.
-        font: Font for HUD text.
-        small_font: Smaller font for secondary info.
-        maze_w: Maze width in cells.
-        maze_h: Maze height in cells.
-    """
+    """Handles all pygame rendering."""
 
     def __init__(self, maze_w: int, maze_h: int) -> None:
-        """Initialize the renderer and create the display.
-
-        Args:
-            maze_w: Maze width in cells.
-            maze_h: Maze height in cells.
-        """
+        """Initialize the renderer and create the display."""
         self.maze_w: int = maze_w
         self.maze_h: int = maze_h
         self.pixel_w: int = maze_w * CELL_SIZE
@@ -62,12 +49,7 @@ class Renderer:
         )
 
     def resize(self, maze_w: int, maze_h: int) -> None:
-        """Resize display for a new maze size.
-
-        Args:
-            maze_w: New maze width.
-            maze_h: New maze height.
-        """
+        """Resize display for a new maze size."""
         self.maze_w = maze_w
         self.maze_h = maze_h
         self.pixel_w = maze_w * CELL_SIZE
@@ -81,11 +63,7 @@ class Renderer:
         self.screen.fill(BG_COLOR)
 
     def draw_maze(self, maze: list[list[int]]) -> None:
-        """Draw maze walls.
-
-        Args:
-            maze: 2D list of wall-encoded cells.
-        """
+        """Draw maze walls."""
         h = len(maze)
         w = len(maze[0]) if h > 0 else 0
 
@@ -135,11 +113,7 @@ class Renderer:
                     )
 
     def draw_items(self, items: list[list[int]]) -> None:
-        """Draw pacgums and super-pacgums.
-
-        Args:
-            items: 2D grid of item types.
-        """
+        """Draw pacgums and super-pacgums"""
         h = len(items)
         w = len(items[0]) if h > 0 else 0
 
@@ -162,11 +136,7 @@ class Renderer:
                     )
 
     def draw_player(self, player: Player) -> None:
-        """Draw Pac-Man with animated mouth.
-
-        Args:
-            player: The player object.
-        """
+        """Draw Pac-Man with animated mouth"""
         if player.dead:
             return
 
@@ -210,13 +180,7 @@ class Renderer:
 
     def draw_ghost(self, ghost: Ghost, player_x: int,
                    player_y: int) -> None:
-        """Draw a single ghost.
-
-        Args:
-            ghost: The ghost object.
-            player_x: Player x for eye direction.
-            player_y: Player y for eye direction.
-        """
+        """Draw a single ghost"""
         if ghost.eaten:
             # Draw just eyes floating back
             self._draw_ghost_eyes(
@@ -275,15 +239,7 @@ class Renderer:
     def _draw_ghost_eyes(self, cx: int, cy: int,
                          player_x: int, player_y: int,
                          r: int) -> None:
-        """Draw ghost eyes looking toward the player.
-
-        Args:
-            cx: Ghost center x pixel.
-            cy: Ghost center y pixel.
-            player_x: Player cell x.
-            player_y: Player cell y.
-            r: Ghost radius.
-        """
+        """Draw ghost eyes looking toward the player"""
         eye_off = r // 3
         eye_r = max(3, r // 4)
         pupil_r = max(1, eye_r // 2)
@@ -311,16 +267,7 @@ class Renderer:
     def draw_hud(self, score: int, lives: int, level: int,
                  total_levels: int, time_left: int,
                  cheats: dict[str, bool]) -> None:
-        """Draw the in-game HUD bar.
-
-        Args:
-            score: Current score.
-            lives: Remaining lives.
-            level: Current level number.
-            total_levels: Total number of levels.
-            time_left: Seconds remaining.
-            cheats: Active cheat flags.
-        """
+        """Draw the in-game HUD bar"""
         hud_y = self.maze_h * CELL_SIZE + 4
 
         # Background bar
@@ -370,11 +317,7 @@ class Renderer:
             self.screen.blit(cheat_surf, (10, hud_y + 26))
 
     def draw_overlay(self, alpha: int = 200) -> None:
-        """Draw a semi-transparent dark overlay.
-
-        Args:
-            alpha: Transparency value (0-255).
-        """
+        """Draw a semi-transparent dark overlay"""
         overlay = pygame.Surface(
             (self.pixel_w, self.pixel_h)
         )
@@ -386,14 +329,7 @@ class Renderer:
                            color: tuple[int, int, int] = WHITE,
                            font: Optional[pygame.font.Font] = None
                            ) -> None:
-        """Draw centered text.
-
-        Args:
-            text: Text to render.
-            y: Y position for text center.
-            color: Text color.
-            font: Font to use (defaults to medium_font).
-        """
+        """Draw centered text"""
         f = font or self.medium_font
         surf = f.render(text, True, color)
         rect = surf.get_rect(center=(self.pixel_w // 2, y))
@@ -401,12 +337,7 @@ class Renderer:
 
     def draw_menu(self, highscores: list[tuple[str, int]],
                   selected: int = 0) -> None:
-        """Draw the main menu screen.
-
-        Args:
-            highscores: List of (name, score) tuples.
-            selected: Currently selected menu item index.
-        """
+        """Draw the main menu screen"""
         self.screen.fill((10, 10, 30))
         self.draw_text_centered(
             "PAC-MAN", self.pixel_h // 6,
@@ -446,11 +377,7 @@ class Renderer:
                 )
 
     def draw_pause_menu(self, selected: int = 0) -> None:
-        """Draw the pause screen overlay.
-
-        Args:
-            selected: Currently selected option.
-        """
+        """Draw the pause screen overla"""
         self.draw_overlay(180)
         self.draw_text_centered(
             "PAUSED", self.pixel_h // 3,
@@ -467,11 +394,7 @@ class Renderer:
 
     def draw_highscores(self, entries: list[tuple[str, int]]
                         ) -> None:
-        """Draw highscores screen.
-
-        Args:
-            entries: List of (name, score) tuples.
-        """
+        """Draw highscores screen"""
         self.screen.fill((10, 10, 30))
         self.draw_text_centered(
             "TOP 10 HIGHSCORES", 50,
@@ -540,13 +463,7 @@ class Renderer:
     def draw_enter_name(self, final_score: int,
                         player_name: str,
                         is_victory: bool) -> None:
-        """Draw the name entry screen after game ends.
-
-        Args:
-            final_score: The player's final score.
-            player_name: Current name text being entered.
-            is_victory: Whether the player won.
-        """
+        """Draw the name entry screen after game ends"""
         self.draw_overlay(200)
         title = "YOU WIN!" if is_victory else "GAME OVER"
         color = (0, 255, 0) if is_victory else (255, 50, 50)

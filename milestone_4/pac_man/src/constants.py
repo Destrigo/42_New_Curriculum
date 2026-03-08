@@ -3,7 +3,7 @@
 from typing import Final
 
 # ── Display ──
-CELL_SIZE: Final[int] = 32
+CELL_SIZE: Final[int] = 50
 FPS: Final[int] = 60
 HUD_HEIGHT: Final[int] = 48
 

@@ -16,20 +16,10 @@ NAME_PATTERN: re.Pattern[str] = re.compile(r'^[a-zA-Z0-9 ]+$')
 
 
 class HighscoreEntry:
-    """A single highscore entry.
-
-    Attributes:
-        name: Player name (max 10 chars, alphanumeric + spaces).
-        score: Non-negative integer score.
-    """
+    """A single highscore entry."""
 
     def __init__(self, name: str, score: int) -> None:
-        """Initialize a highscore entry.
-
-        Args:
-            name: Player name.
-            score: Player score.
-        """
+        """Initialize a highscore entry."""
         self.name: str = self._sanitize_name(name)
         self.score: int = max(0, int(score))
 
@@ -48,11 +38,7 @@ class HighscoreEntry:
         return clean if clean else "Player"
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert entry to dictionary.
-
-        Returns:
-            Dict with 'name' and 'score' keys.
-        """
+        """Convert entry to dictionary."""
         return {"name": self.name, "score": self.score}
 
     def __repr__(self) -> str:
@@ -61,30 +47,16 @@ class HighscoreEntry:
 
 
 class HighscoreManager:
-    """Manages the highscore list with persistence.
-
-    Attributes:
-        filepath: Path to the JSON file.
-        entries: Sorted list of highscore entries (highest first).
-    """
+    """Manages the highscore list with persistence."""
 
     def __init__(self, filepath: str) -> None:
-        """Initialize the highscore manager.
-
-        Args:
-            filepath: Path to the highscores JSON file.
-        """
+        """Initialize the highscore manager."""
         self.filepath: str = filepath
         self.entries: list[HighscoreEntry] = []
         self.load()
 
     def load(self) -> None:
-        """Load highscores from file.
-
-        Handles missing files, invalid JSON, and corrupt entries
-        gracefully, logging warnings and continuing with what's
-        valid.
-        """
+        """Load highscores from file."""
         if not os.path.exists(self.filepath):
             print(f"[highscore] No file at {self.filepath}, "
                   "starting fresh.")
@@ -121,10 +93,7 @@ class HighscoreManager:
         self.entries = entries[:MAX_ENTRIES]
 
     def save(self) -> None:
-        """Save highscores to file.
-
-        Handles write errors gracefully.
-        """
+        """Save highscores to file."""
         data = [e.to_dict() for e in self.entries]
         try:
             with open(self.filepath, "w", encoding="utf-8") as f:
@@ -134,15 +103,7 @@ class HighscoreManager:
                   f"{self.filepath}: {e}")
 
     def add(self, name: str, score: int) -> bool:
-        """Add a new score to the highscore list.
-
-        Args:
-            name: Player name.
-            score: Player score.
-
-        Returns:
-            True if the score made it into the top 10.
-        """
+        """Add a new score to the highscore list."""
         entry = HighscoreEntry(name, score)
         self.entries.append(entry)
         self.entries.sort(key=lambda e: e.score, reverse=True)
@@ -152,25 +113,11 @@ class HighscoreManager:
 
     def get_top(self, count: int = MAX_ENTRIES
                 ) -> list[HighscoreEntry]:
-        """Get top scores.
-
-        Args:
-            count: Number of entries to return.
-
-        Returns:
-            List of top highscore entries.
-        """
+        """Get top scores."""
         return self.entries[:count]
 
     def is_high_score(self, score: int) -> bool:
-        """Check if a score qualifies for the top 10.
-
-        Args:
-            score: Score to check.
-
-        Returns:
-            True if the score would make the list.
-        """
+        """Check if a score qualifies for the top 10."""
         if len(self.entries) < MAX_ENTRIES:
             return True
         return score > self.entries[-1].score

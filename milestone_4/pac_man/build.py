@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Build script for packaging the Pac-Man game.
+"""Build and package the Pac-Man game for Itch.io deployment.
 
 Creates a standalone executable using PyInstaller, then packages
-it into a zip ready for upload to Itch.io or similar platform.
+it into a zip ready for upload.
 
 Usage:
     python3 build.py
 
-Requirements:
-    pip install pyinstaller
+Prerequisites:
+    uv add pyinstaller
 
 Output:
     dist/pacman-42/         Standalone executable directory
-    dist/pacman-42.zip      Ready-to-upload archive for Itch.io
+    dist/pacman-42.zip      Archive ready for Itch.io upload
 """
 
 import os
@@ -21,6 +21,7 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from typing import Optional
 
 
 PROJECT_NAME: str = "pacman-42"
@@ -28,11 +29,12 @@ ENTRY_POINT: str = "pac-man.py"
 INCLUDE_FILES: list[str] = [
     "config.json",
     "README.md",
+    ".itch.toml",
 ]
 
 
 def check_pyinstaller() -> bool:
-    """Check if PyInstaller is installed.
+    """Check if PyInstaller is importable.
 
     Returns:
         True if PyInstaller is available.
@@ -45,35 +47,78 @@ def check_pyinstaller() -> bool:
 
 
 def build_executable() -> bool:
-    """Build the standalone executable with PyInstaller.
-
-    Returns:
-        True if the build succeeded.
-    """
+    """Build the standalone executable with PyInstaller"""
     print("[build] Building executable with PyInstaller...")
 
-    # cmd: list[str] = [
-    #     sys.executable, "-m", "PyInstaller",
-    #     "--name", PROJECT_NAME,
-    #     "--onedir",
-    #     "--noconsole" if sys.platform == "win32" else "--console",
-    #     "--add-data", f"config.json{os.pathsep}.",
-    #     "--add-data", f"README.md{os.pathsep}.",
-    #     "--hidden-import", "pygame",
-    #     "--hidden-import", "mazegenerator",
-    #     "--hidden-import", "mazegenerator.mazegenerator",
-    #     ENTRY_POINT,
-    # ]
+    cmd: list[str] = [
+        sys.executable, "-m", "PyInstaller",
+        "--name", PROJECT_NAME,
+        "--onedir",
+        "--console",
+        "--add-data", f"config.json{os.pathsep}.",
+        "--add-data", f"README.md{os.pathsep}.",
+        "--hidden-import", "pygame",
+        "--hidden-import", "mazegenerator",
+        "--hidden-import", "mazegenerator.mazegenerator",
+        ENTRY_POINT,
+    ]
+
+    # if sys.platform == "win32":
+    #     cmd[5] = "--noconsole"
 
     try:
-        # result = subprocess.run(
-        #     cmd, check=True, capture_output=True, text=True
-        # )
+        result = subprocess.run(cmd, check=True)
+        print(result)
         print("[build] PyInstaller build succeeded.")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"[build] PyInstaller failed:\n{e.stderr}")
+        print(f"[build] PyInstaller failed with code {e.returncode}")
         return False
+
+
+def find_dist_dir() -> Optional[Path]:
+    """Find the output directory created by PyInstaller.
+
+    Returns:
+        Path to the distribution directory, or None if not found.
+    """
+    dist = Path("dist")
+    if not dist.exists():
+        return None
+
+    # Try exact name first
+    exact = dist / PROJECT_NAME
+    if exact.is_dir():
+        return exact
+
+    # Try without hyphens
+    alt = dist / PROJECT_NAME.replace("-", "_")
+    if alt.is_dir():
+        return alt
+
+    # Try the entry point name without extension
+    entry_name = Path(ENTRY_POINT).stem
+    alt2 = dist / entry_name
+    if alt2.is_dir():
+        return alt2
+
+    # Last resort: pick the first directory in dist/
+    dirs = [d for d in dist.iterdir() if d.is_dir()]
+    if dirs:
+        # print(f"[build] Expected dist/{PROJECT_NAME}, "
+        #       f"found dist/{dirs[0].name}")
+        return dirs[0]
+
+    # Maybe --onefile produced a single executable
+    files = [f for f in dist.iterdir() if f.is_file()]
+    if files:
+        pkg_dir = dist / PROJECT_NAME
+        pkg_dir.mkdir()
+        for f in files:
+            shutil.move(str(f), str(pkg_dir / f.name))
+        return pkg_dir
+
+    return None
 
 
 def copy_extras(dist_dir: Path) -> None:
@@ -87,12 +132,11 @@ def copy_extras(dist_dir: Path) -> None:
         if src.exists():
             dst = dist_dir / filename
             shutil.copy2(src, dst)
-            print(f"[build] Copied {filename}")
+            # print(f"[build] Copied {filename}")
 
-    # Copy mazegenerator wheel if present
     for whl in Path(".").glob("mazegenerator*.whl"):
         shutil.copy2(whl, dist_dir / whl.name)
-        print(f"[build] Copied {whl.name}")
+        # print(f"[build] Copied {whl.name}")
 
 
 def create_launch_instructions(dist_dir: Path) -> None:
@@ -115,13 +159,12 @@ def create_launch_instructions(dist_dir: Path) -> None:
         "Configuration:\n"
         "  Edit config.json to change game settings.\n\n"
         "How to launch:\n"
-        "  Run the pacman-42 executable in this directory.\n"
+        f"  Run the {PROJECT_NAME} executable in this directory.\n"
         "  Or from source: python3 pac-man.py config.json\n"
     )
-    readme_path = dist_dir / "INSTRUCTIONS.txt"
-    with open(readme_path, "w", encoding="utf-8") as f:
+    with open(dist_dir / "INSTRUCTIONS.txt", "w", encoding="utf-8") as f:
         f.write(instructions)
-    print("[build] Created INSTRUCTIONS.txt")
+    # print("[build] Created INSTRUCTIONS.txt")
 
 
 def create_zip(dist_dir: Path) -> Path:
@@ -143,20 +186,20 @@ def create_zip(dist_dir: Path) -> Path:
                 arcname = filepath.relative_to(dist_dir.parent)
                 zf.write(filepath, arcname)
 
-    print(f"[build] Archive created: {zip_path}")
+    size_mb = zip_path.stat().st_size / (1024 * 1024)
+    print(f"[build] Archive created: {zip_path} ({size_mb:.1f} MB)")
     return zip_path
 
 
 def main() -> None:
     """Run the full build pipeline."""
-    print(f"[build] Packaging {PROJECT_NAME}...")
-    print(f"[build] Platform: {sys.platform}")
+    # print(f"[build] Packaging {PROJECT_NAME}...")
+    # print(f"[build] Platform: {sys.platform}")
+    # print(f"[build] Python: {sys.executable}")
 
     if not check_pyinstaller():
         print("[build] PyInstaller not found.")
-        print("[build] Install it with: pip install pyinstaller")
-        print("[build] Alternatively, distribute as source with:")
-        print(f"[build]   python3 {ENTRY_POINT} config.json")
+        print("[build] Install it with: uv add pyinstaller")
         sys.exit(1)
 
     # Clean previous builds
@@ -169,25 +212,28 @@ def main() -> None:
     if not build_executable():
         sys.exit(1)
 
-    dist_dir = Path("dist") / PROJECT_NAME
-    if not dist_dir.exists():
-        print(f"[build] Error: {dist_dir} not found after build.")
+    # Find output — auto-detect whatever PyInstaller created
+    dist_dir = find_dist_dir()
+    if dist_dir is None:
+        # print("[build] Error: no output found in dist/")
+        # print("[build] Contents of dist/:")
+        # dist = Path("dist")
+        # if dist.exists():
+        #     for item in dist.iterdir():
+        #         print(f"  {item}")
+        # else:
+        #     print("  (dist/ does not exist)")
         sys.exit(1)
 
-    # Copy extras and create instructions
+    print(f"[build] Found output at: {dist_dir}")
+
     copy_extras(dist_dir)
     create_launch_instructions(dist_dir)
-
-    # Create zip for upload
     zip_path = create_zip(dist_dir)
 
     print()
-    print("=" * 50)
     print("  Build complete!")
-    print(f"  Executable: {dist_dir}/")
-    print(f"  Archive:    {zip_path}")
     print(f"  Upload {zip_path} to Itch.io")
-    print("=" * 50)
 
 
 if __name__ == "__main__":

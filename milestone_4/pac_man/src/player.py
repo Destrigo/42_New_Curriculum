@@ -49,15 +49,7 @@ class Player:
 
     def try_move(self, direction: str,
                  maze: list[list[int]]) -> bool:
-        """Attempt to move in a given direction.
-
-        Args:
-            direction: Direction to move ('N', 'E', 'S', 'W').
-            maze: The maze grid for collision checking.
-
-        Returns:
-            True if the move was successful.
-        """
+        """Attempt to move in a given direction."""
         if can_move(maze, self.x, self.y, direction):
             dx, dy = DIR_DELTA[direction]
             self.x += dx
@@ -67,21 +59,13 @@ class Player:
         return False
 
     def update_animation(self, dt: float) -> None:
-        """Update mouth animation timer.
-
-        Args:
-            dt: Delta time in seconds.
-        """
+        """Update mouth animation timer."""
         self.mouth_timer += dt * 8.0
         if self.mouth_timer > 2.0:
             self.mouth_timer -= 2.0
 
     def get_mouth_angle(self) -> float:
-        """Get the current mouth opening angle.
-
-        Returns:
-            Angle in radians for the mouth opening.
-        """
+        """Get the current mouth opening angle."""
         t = self.mouth_timer
         if t > 1.0:
             t = 2.0 - t

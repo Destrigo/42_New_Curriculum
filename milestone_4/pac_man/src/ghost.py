@@ -70,21 +70,13 @@ class Ghost:
         self.respawn_timer = 0.0
 
     def make_frightened(self, duration: float) -> None:
-        """Put ghost into frightened state.
-
-        Args:
-            duration: How long the ghost stays frightened (seconds).
-        """
+        """Put ghost into frightened state."""
         if not self.eaten:
             self.frightened = True
             self.frighten_timer = duration
 
     def eat(self, respawn_time: float) -> None:
-        """Mark ghost as eaten.
-
-        Args:
-            respawn_time: Seconds until ghost respawns at home.
-        """
+        """Mark ghost as eaten."""
         self.eaten = True
         self.frightened = False
         self.frighten_timer = 0.0
@@ -93,8 +85,6 @@ class Ghost:
     def update(self, dt: float, player_x: int, player_y: int,
                maze: list[list[int]], frozen: bool = False) -> None:
         """Update ghost state and position.
-
-        Args:
             dt: Delta time in seconds.
             player_x: Player's current x position.
             player_y: Player's current y position.
@@ -122,13 +112,7 @@ class Ghost:
 
     def move(self, player_x: int, player_y: int,
              maze: list[list[int]]) -> None:
-        """Execute one movement step.
-
-        Args:
-            player_x: Player x position for chase/flee logic.
-            player_y: Player y position for chase/flee logic.
-            maze: The maze grid.
-        """
+        """Execute one movement step."""
         if self.eaten:
             return
 
@@ -152,7 +136,7 @@ class Ghost:
         pick: Optional[tuple[str, int, int]] = None
 
         if self.frightened:
-            # Flee: maximize distance from player
+            # Flee
             best_dist = -1
             for d, nx, ny in moves:
                 dist = abs(nx - player_x) + abs(ny - player_y)
@@ -163,7 +147,7 @@ class Ghost:
             if random.random() < 0.25:
                 pick = random.choice(moves)
         else:
-            # Chase: minimize distance to player
+            # Chase
             best_d = float("inf")
             for d, nx, ny in moves:
                 dist = abs(nx - player_x) + abs(ny - player_y)

@@ -16,17 +16,7 @@ from src.constants import (
 
 def generate_maze(width: int, height: int, seed: int,
                   perfect: bool = False) -> Any:
-    """Generate a maze using the mazegenerator package.
-
-    Args:
-        width: Maze width in cells.
-        height: Maze height in cells.
-        seed: RNG seed (0 = random).
-        perfect: If False, produces imperfect (Pac-Man-style) mazes.
-
-    Returns:
-        2D list of wall-encoded cells, or a fallback maze on error.
-    """
+    """Generate a maze using the mazegenerator package."""
     try:
         from mazegenerator.mazegenerator import MazeGenerator
         mg: Any = MazeGenerator(
@@ -49,16 +39,7 @@ def generate_maze(width: int, height: int, seed: int,
 
 def _fallback_maze(width: int, height: int,
                    seed: int) -> list[list[int]]:
-    """Simple fallback maze generator if external package fails.
-
-    Args:
-        width: Maze width.
-        height: Maze height.
-        seed: RNG seed.
-
-    Returns:
-        2D list of wall-encoded cells.
-    """
+    """Simple fallback maze generator if external package fails."""
     rng = random.Random(seed if seed > 0 else None)
 
     maze: list[list[int]] = []
@@ -77,7 +58,6 @@ def _fallback_maze(width: int, height: int,
             row.append(cell)
         maze.append(row)
 
-    # Simple recursive backtracker
     visited = [[False] * width for _ in range(height)]
     stack: list[tuple[int, int]] = [(0, 0)]
     visited[0][0] = True
@@ -100,11 +80,9 @@ def _fallback_maze(width: int, height: int,
             if 0 <= nx < width and 0 <= ny < height:
                 if not visited[ny][nx]:
                     neighbors.append((nx, ny, dx, dy, wall, opp))
-
         if not neighbors:
             stack.pop()
             continue
-
         nx, ny, _, _, wall, opp = neighbors[0]
         visited[ny][nx] = True
         maze[cy][cx] &= ~wall
@@ -127,17 +105,7 @@ def _fallback_maze(width: int, height: int,
 
 def has_wall(maze: list[list[int]], x: int, y: int,
              direction: str) -> bool:
-    """Check if a cell has a wall in the given direction.
-
-    Args:
-        maze: The 2D maze grid.
-        x: Cell x coordinate.
-        y: Cell y coordinate.
-        direction: One of 'N', 'E', 'S', 'W'.
-
-    Returns:
-        True if there is a wall blocking movement.
-    """
+    """Check if a cell has a wall in the given direction."""
     h = len(maze)
     w = len(maze[0]) if h > 0 else 0
     if x < 0 or x >= w or y < 0 or y >= h:
@@ -150,17 +118,7 @@ def has_wall(maze: list[list[int]], x: int, y: int,
 
 def can_move(maze: list[list[int]], x: int, y: int,
              direction: str) -> bool:
-    """Check if movement from (x, y) in direction is possible.
-
-    Args:
-        maze: The 2D maze grid.
-        x: Current x coordinate.
-        y: Current y coordinate.
-        direction: Direction to move.
-
-    Returns:
-        True if the move is valid.
-    """
+    """Check if movement from (x, y) in direction is possible."""
     h = len(maze)
     w = len(maze[0]) if h > 0 else 0
     if x < 0 or x >= w or y < 0 or y >= h:
@@ -179,16 +137,7 @@ def can_move(maze: list[list[int]], x: int, y: int,
 
 
 def is_walkable(maze: list[list[int]], x: int, y: int) -> bool:
-    """Check if a cell is walkable (not a solid wall).
-
-    Args:
-        maze: The 2D maze grid.
-        x: Cell x coordinate.
-        y: Cell y coordinate.
-
-    Returns:
-        True if the cell is not a solid wall block.
-    """
+    """Check if a cell is walkable (not a solid wall)."""
     h = len(maze)
     w = len(maze[0]) if h > 0 else 0
     if x < 0 or x >= w or y < 0 or y >= h:
@@ -198,17 +147,7 @@ def is_walkable(maze: list[list[int]], x: int, y: int) -> bool:
 
 def find_nearest_walkable(maze: list[list[int]], cx: int, cy: int,
                           max_radius: int = 10) -> tuple[int, int]:
-    """Find the nearest walkable cell to (cx, cy).
-
-    Args:
-        maze: The 2D maze grid.
-        cx: Target x coordinate.
-        cy: Target y coordinate.
-        max_radius: Maximum search radius.
-
-    Returns:
-        (x, y) of the nearest walkable cell.
-    """
+    """Find the nearest walkable cell to (cx, cy)"""
     if is_walkable(maze, cx, cy):
         return cx, cy
     for r in range(1, max_radius + 1):
@@ -224,23 +163,14 @@ def place_items(maze: list[list[int]],
                 player_pos: tuple[int, int],
                 ghost_positions: list[tuple[int, int]]
                 ) -> tuple[list[list[int]], int]:
-    """Place pacgums and super-pacgums on the maze.
-
-    Args:
-        maze: The 2D maze grid.
-        player_pos: Player starting position.
-        ghost_positions: List of ghost starting positions.
-
-    Returns:
-        Tuple of (items grid, total pacgum count).
-    """
+    """Place pacgums and super-pacgums on the maze."""
     h = len(maze)
     w = len(maze[0]) if h > 0 else 0
     items: list[list[int]] = [
         [ITEM_EMPTY] * w for _ in range(h)
     ]
 
-    # Place pacgums on all walkable cells
+    # Place pacgums
     count = 0
     for y in range(h):
         for x in range(w):
@@ -248,7 +178,7 @@ def place_items(maze: list[list[int]],
                 items[y][x] = ITEM_PACGUM
                 count += 1
 
-    # Place super-pacgums near corners BEFORE clearing positions
+    # Place super-pacgums near corners
     corners = [
         (1, 1),
         (1, w - 2),

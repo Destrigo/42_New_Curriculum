@@ -19,12 +19,6 @@ def strip_comments(text: str) -> str:
         - Lines starting with #
         - C-style // single-line comments
         - C-style /* ... */ block comments
-
-    Args:
-        text: Raw text content from config file.
-
-    Returns:
-        Cleaned text with comments removed.
     """
     lines: list[str] = []
     in_block: bool = False
@@ -56,18 +50,7 @@ def strip_comments(text: str) -> str:
 
 def _clamp(value: Any, vmin: Any, vmax: Any, default: Any,
            key: str) -> Any:
-    """Clamp a value to [vmin, vmax], falling back to default.
-
-    Args:
-        value: The value to validate.
-        vmin: Minimum allowed value.
-        vmax: Maximum allowed value.
-        default: Fallback value if invalid.
-        key: Config key name for logging.
-
-    Returns:
-        Validated value within bounds.
-    """
+    """Clamp a value to [vmin, vmax], falling back to default."""
     try:
         val = type(default)(value)
     except (TypeError, ValueError):
@@ -86,12 +69,6 @@ def load_config(filepath: str) -> dict[str, Any]:
 
     On missing or invalid values, clamps to safe defaults and logs
     a clear message. Unknown keys are ignored.
-
-    Args:
-        filepath: Path to the JSON config file.
-
-    Returns:
-        Validated configuration dictionary.
     """
     config: dict[str, Any] = dict(DEFAULT_CONFIG)
 

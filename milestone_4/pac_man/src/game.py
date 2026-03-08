@@ -48,9 +48,6 @@ class Game:
 
     def __init__(self, config_path: str) -> None:
         """Initialize the game.
-
-        Args:
-            config_path: Path to the JSON configuration file.
         """
         self.config: dict[str, Any] = load_config(config_path)
         self.state: str = STATE_MENU
@@ -106,14 +103,7 @@ class Game:
 
     def _get_level_config(self, level_num: int
                           ) -> Any:
-        """Get maze dimensions for a given level.
-
-        Args:
-            level_num: Level number (1-based).
-
-        Returns:
-            Dict with 'width' and 'height' keys.
-        """
+        """Get maze dimensions for a given level."""
         levels = self.config.get("levels",
                                  DEFAULT_CONFIG["levels"])
         idx = min(level_num - 1, len(levels) - 1)
@@ -122,11 +112,7 @@ class Game:
         return levels[idx]
 
     def _total_levels(self) -> int:
-        """Get total number of levels.
-
-        Returns:
-            Number of levels defined in config.
-        """
+        """Get total number of levels."""
         levels = self.config.get("levels",
                                  DEFAULT_CONFIG["levels"])
         return len(levels)
@@ -134,13 +120,7 @@ class Game:
     def start_level(self, level_num: int,
                     carry_score: int = 0,
                     carry_lives: int = -1) -> None:
-        """Initialize a new level.
-
-        Args:
-            level_num: Level number to start.
-            carry_score: Score carried from previous level.
-            carry_lives: Lives carried (-1 uses config default).
-        """
+        """Initialize a new level."""
         self.level = level_num
         lc = self._get_level_config(level_num)
         self.maze_w = lc["width"]
@@ -153,8 +133,6 @@ class Game:
         self.maze = generate_maze(
             self.maze_w, self.maze_h, seed, perfect=False
         )
-
-        # Resize renderer
         self.renderer.resize(self.maze_w, self.maze_h)
 
         # Find player start (center)
@@ -215,9 +193,6 @@ class Game:
 
     def _handle_keydown(self, key: int) -> None:
         """Handle a key press based on current state.
-
-        Args:
-            key: Pygame key constant.
         """
         if self.state == STATE_MENU:
             self._handle_menu_key(key)
@@ -235,11 +210,7 @@ class Game:
             self._handle_name_entry_key(key)
 
     def _handle_menu_key(self, key: int) -> None:
-        """Handle key in main menu.
-
-        Args:
-            key: Pygame key constant.
-        """
+        """Handle key in main menu."""
         if key in (pygame.K_UP, pygame.K_w):
             self.menu_selection = (self.menu_selection - 1) % 4
         elif key in (pygame.K_DOWN, pygame.K_s):
@@ -260,11 +231,7 @@ class Game:
                 self.running = False
 
     def _handle_playing_key(self, key: int) -> None:
-        """Handle key during gameplay.
-
-        Args:
-            key: Pygame key constant.
-        """
+        """Handle key during gameplay."""
         # Movement
         if key in (pygame.K_UP, pygame.K_w):
             self.queued_direction = DIR_N
@@ -275,12 +242,10 @@ class Game:
         elif key in (pygame.K_RIGHT, pygame.K_d):
             self.queued_direction = DIR_E
 
-        # Pause
         if key in (pygame.K_ESCAPE, pygame.K_p):
             self.state = STATE_PAUSED
             self.pause_selection = 0
 
-        # Cheats
         if key == pygame.K_1:
             self.cheats["god"] = not self.cheats["god"]
         elif key == pygame.K_2:
@@ -296,11 +261,7 @@ class Game:
                 self.player.lives += 1
 
     def _handle_pause_key(self, key: int) -> None:
-        """Handle key in pause menu.
-
-        Args:
-            key: Pygame key constant.
-        """
+        """Handle key in pause menu."""
         if key in (pygame.K_ESCAPE, pygame.K_p):
             self.state = STATE_PLAYING
             self.last_timer_tick = time.time()
@@ -320,11 +281,7 @@ class Game:
                 self.state = STATE_MENU
 
     def _handle_name_entry_key(self, key: int) -> None:
-        """Handle key in name entry screen.
-
-        Args:
-            key: Pygame key constant.
-        """
+        """Handle key in name entry screen."""
         if key == pygame.K_RETURN:
             name = self.player_name.strip() or "Player"
             score = self.player.score if self.player else 0
@@ -343,17 +300,12 @@ class Game:
                     self.player_name += " "
 
     def update(self, dt: float) -> None:
-        """Update game logic for one frame.
-
-        Args:
-            dt: Delta time in seconds.
-        """
+        """Update game logic for one frame."""
         if self.state != STATE_PLAYING:
             return
         if not self.player:
             return
 
-        # ── Death pause ──
         if self.player.dead:
             self.player.dead_timer -= dt
             if self.player.dead_timer <= 0:
@@ -362,30 +314,28 @@ class Game:
                     g.reset()
             return
 
-        # ── Timer ──
         now = time.time()
         elapsed = now - self.last_timer_tick
         if elapsed >= 1.0:
             self.time_left -= int(elapsed)
             self.last_timer_tick = now
             if self.time_left <= 0:
-                self.player.lives -= 1
-                if self.player.lives <= 0:
-                    self._end_game(victory=False)
-                    return
-                else:
-                    # Restart level
-                    self.time_left = float(
-                        self.config["level_max_time"]
-                    )
-                    self.player.respawn()
-                    for g in self.ghosts:
-                        g.reset()
+                self._end_game(victory=False)
+                return
+                # self.player.lives -= 1
+                # if self.player.lives <= 0:
+                #     self._end_game(victory=False)
+                #     return
+                # else:
+                #     self.time_left = float(
+                #         self.config["level_max_time"]
+                #     )
+                #     self.player.respawn()
+                #     for g in self.ghosts:
+                #         g.reset()
 
-        # ── Player animation ──
         self.player.update_animation(dt)
 
-        # ── Player movement ──
         speed_mult = 0.5 if self.cheats["speed"] else 1.0
         self.player_move_acc += dt
         if self.player_move_acc >= self.player_move_interval * speed_mult:
@@ -396,7 +346,7 @@ class Game:
                     self.queued_direction, self.maze
                 )
                 if moved:
-                    pass  # queued dir stays as new dir
+                    pass
                 else:
                     moved = self.player.try_move(
                         self.player.direction, self.maze
@@ -409,7 +359,7 @@ class Game:
             if moved:
                 self._check_item_collection()
 
-        # ── Ghost movement ──
+        # Ghost movement
         if not self.cheats["freeze"]:
             self.ghost_move_acc += dt
             if self.ghost_move_acc >= self.ghost_move_interval:
@@ -418,15 +368,14 @@ class Game:
                     g.move(self.player.x, self.player.y,
                            self.maze)
 
-        # ── Ghost timers ──
         for g in self.ghosts:
             g.update(dt, self.player.x, self.player.y,
                      self.maze, self.cheats["freeze"])
 
-        # ── Collision detection ──
+        # Collision detection
         self._check_collisions()
 
-        # ── Level complete? ──
+        # Level complete?
         if self.pacgums_left <= 0:
             if self.level >= self._total_levels():
                 self._end_game(victory=True)
@@ -488,11 +437,7 @@ class Game:
                     self.player.dead_timer = 1.0
 
     def _end_game(self, victory: bool) -> None:
-        """Transition to end-game screen.
-
-        Args:
-            victory: Whether the player won.
-        """
+        """Transition to end-game screen."""
         self.is_victory = victory
         self.state = STATE_ENTER_NAME
         self.player_name = ""
