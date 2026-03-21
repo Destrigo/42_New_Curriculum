@@ -1,0 +1,8 @@
+secrets/
+srcs/.env
+.DS_Store
+*.swp
+*.swo
+*~
+*.log
+data/
