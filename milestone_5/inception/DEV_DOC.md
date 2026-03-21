@@ -34,7 +34,7 @@ inception/
 └── srcs/
     ├── .env
     ├── docker-compose.yml
-    └── requirements/
+    └── requiremenlogints/
         ├── nginx/
         │   ├── Dockerfile
         │   ├── .dockerignore
@@ -55,7 +55,7 @@ inception/
             ├── conf/
             │   └── 50-server.cnf
             └── tools/
-                └── init-db.sh
+                └─login─ init-db.sh
 ```
 
 ## Makefile Commands
