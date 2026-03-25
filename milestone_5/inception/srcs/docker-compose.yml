@@ -1,4 +1,4 @@
-version: '3.8'
+#version: '3.8'
 
 services:
   nginx:
@@ -63,7 +63,7 @@ services:
       - db_password
       - db_root_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      test: ["CMD-SHELL", "pgrep mysqld"]
       interval: 10s
       timeout: 5s
       retries: 5

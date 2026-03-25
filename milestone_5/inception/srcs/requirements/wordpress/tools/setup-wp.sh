@@ -27,51 +27,21 @@ if [ -f "wp-config.php" ]; then
     echo "WordPress already configured."
 else
     echo "Downloading WordPress..."
-    wp core download --allow-root --path=/var/www/html
+    curl -O https://wordpress.org/latest.tar.gz
+    tar -xzf latest.tar.gz
+    mv wordpress/* .
+    rm -rf wordpress latest.tar.gz
     
     echo "Creating wp-config.php..."
-    wp config create --allow-root \
-        --dbname="${MYSQL_DATABASE}" \
-        --dbuser="${MYSQL_USER}" \
-        --dbpass="${DB_PASSWORD}" \
-        --dbhost="${MYSQL_HOST:-mariadb}" \
-        --dbcharset="utf8mb4" \
-        --dbcollate="utf8mb4_general_ci" \
-        --path=/var/www/html
+    cp wp-config-sample.php wp-config.php
     
-    wp config set WP_DEBUG false --raw --allow-root
-    wp config set WP_DEBUG_LOG false --raw --allow-root
-    wp config set DISALLOW_FILE_EDIT true --raw --allow-root
+    sed -i "s/database_name_here/${MYSQL_DATABASE}/" wp-config.php
+    sed -i "s/username_here/${MYSQL_USER}/" wp-config.php
+    sed -i "s/password_here/${DB_PASSWORD}/" wp-config.php
+    sed -i "s/localhost/${MYSQL_HOST:-mariadb}/" wp-config.php
     
     echo "WordPress configuration created!"
 fi
-
-if wp core is-installed --allow-root 2>/dev/null; then
-    echo "WordPress is already installed."
-else
-    echo "Installing WordPress..."
-    
-    wp core install --allow-root \
-        --url="https://${DOMAIN_NAME}" \
-        --title="${WP_TITLE:-Inception}" \
-        --admin_user="${WP_ADMIN_USER:-boss}" \
-        --admin_password="${WP_ADMIN_PASSWORD}" \
-        --admin_email="${WP_ADMIN_EMAIL:-admin@example.com}" \
-        --skip-email
-    
-    echo "Creating additional user..."
-    wp user create "${WP_USER:-author}" "${WP_USER_EMAIL:-user@example.com}" \
-        --role=author \
-        --user_pass="${WP_USER_PASSWORD}" \
-        --allow-root
-    
-    wp rewrite structure '/%postname%/' --allow-root
-    
-    echo "WordPress installation complete!"
-    echo "Admin: ${WP_ADMIN_USER:-boss}"
-    echo "User: ${WP_USER:-author}"
-fi
-
 chown -R nobody:nobody /var/www/html
 
 echo "Starting PHP-FPM..."
